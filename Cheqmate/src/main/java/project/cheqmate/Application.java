@@ -13,7 +13,6 @@ public class Application {
     List<User> users; // можно сделать мапу <имя чела, User>, чтоб быстро по имени можно было найти
     List<Group> groups; // аналогично
     ObjectMapper objectMapper;
-    private File user_file;
 
     Application(){
         scanner = new Scanner(System.in);
@@ -204,6 +203,8 @@ public class Application {
         if (target == null) {
             System.out.println("There is no group with that name.");
             // придумать что делать дальше
+            target = new Group(targetString);
+            groups.add(target);
         }
         return target;
     }
@@ -222,7 +223,7 @@ public class Application {
     private void make_json() throws IOException {
         for (User us : users) {
             File dir = new File("src/main/java/user_files/");
-            user_file = new File(dir, "file_" + us.getName() + ".json");
+            File user_file = new File(dir, "file_" + us.getName() + ".json");
             user_file.createNewFile();
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(user_file, us.getInfo());
         }
@@ -237,6 +238,30 @@ public class Application {
             ArrayList<String> list = new ArrayList<>();
             list.add(info);
             user.getInfo().put(key, list);
+        }
+    }
+
+    void load_from_json(String[] files) throws IOException {
+        for (String file_path : files) {
+            File path = new File(file_path);
+            parse_json(path);
+        }
+    }
+
+    private void parse_json(File json_file) throws IOException {
+        LinkedHashMap<String, ArrayList<String>> loadedInfo = objectMapper.readValue(json_file, new TypeReference<>() {});
+        ArrayList<String> names = loadedInfo.get("name");
+        String userName = names.get(0);
+        User user = new User(userName);
+        users.add(user);
+
+        user.getInfo().putAll(loadedInfo);
+        ArrayList<String> groupNames = loadedInfo.get("group");
+        if (groupNames != null) {
+            for (String groupName : groupNames) {
+                Group group = findGroupByName(groupName);
+                group.addMember(user);
+            }
         }
     }
 }
