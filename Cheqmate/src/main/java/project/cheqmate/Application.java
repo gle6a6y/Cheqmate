@@ -34,7 +34,8 @@ public class Application {
             System.out.println("4. Write the debts.");
             System.out.println("5. Print users and groups.");
             System.out.println("6. Exit.");
-            System.out.println("7. Make json");
+            System.out.println("7. Make json.");
+            System.out.println("8. Load from json.");
             System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
 
             int instructionNumber = scanner.nextInt();
@@ -62,6 +63,9 @@ public class Application {
                     break;
                 case 7:
                     make_json();
+                    break;
+                case 8:
+                    load_from_json_menu();
                     break;
                 default:
                     System.out.println("Unknown command.");
@@ -224,13 +228,29 @@ public class Application {
         for (User us : users) {
             File dir = new File("src/main/java/user_files/");
             if (!dir.exists()) {
-                dir.mkdir();
+                dir.mkdirs();
             }
             File user_file = new File(dir, "file_" + us.getName() + ".json");
-            user_file.createNewFile();
+            if (!user_file.exists()) {
+                user_file.createNewFile();
+            }
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(user_file, us.getInfo());
         }
         System.out.println("You have created json");
+    }
+
+    private void load_from_json_menu() throws IOException {
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("Enter the path to the JSON file:");
+        String filePath = scanner.nextLine();
+        File file = new File(filePath);
+        if (file.exists() && file.isFile()) {
+            parse_json(file);
+            System.out.println("Data loaded from " + filePath);
+        } else {
+            System.out.println("File not found: " + filePath);
+        }
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
     }
 
     private void add_info(String name, String key, String info) throws IOException {
@@ -254,9 +274,24 @@ public class Application {
     private void parse_json(File json_file) throws IOException {
         LinkedHashMap<String, ArrayList<String>> loadedInfo = objectMapper.readValue(json_file, new TypeReference<>() {});
         ArrayList<String> names = loadedInfo.get("name");
+        if (names == null || names.isEmpty()) {
+            System.out.println("Invalid JSON: 'name' field is missing or empty.");
+            return;
+        }
         String userName = names.get(0);
-        User user = new User(userName);
-        users.add(user);
+        
+        User user = null;
+        for (User u : users) {
+            if (u.getName().equals(userName)) {
+                user = u;
+                break;
+            }
+        }
+        
+        if (user == null) {
+            user = new User(userName);
+            users.add(user);
+        }
 
         user.getInfo().putAll(loadedInfo);
         ArrayList<String> groupNames = loadedInfo.get("group");
