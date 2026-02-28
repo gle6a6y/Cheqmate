@@ -223,11 +223,14 @@ public class Application {
     private void make_json() throws IOException {
         for (User us : users) {
             File dir = new File("src/main/java/user_files/");
+            if (!dir.exists()) {
+                dir.mkdir();
+            }
             File user_file = new File(dir, "file_" + us.getName() + ".json");
             user_file.createNewFile();
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(user_file, us.getInfo());
         }
-        System.out.println("You created json");
+        System.out.println("You have created json");
     }
 
     private void add_info(String name, String key, String info) throws IOException {
