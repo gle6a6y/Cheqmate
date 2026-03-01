@@ -6,7 +6,6 @@ import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class Application {
 
     private final Scanner scanner;
@@ -193,6 +192,7 @@ public class Application {
             // придумать что делать дальше
             System.out.println("Please create user");
             createUser();
+            target = users.get(users.size() - 1);
         }
         return target;
     }
@@ -231,9 +231,7 @@ public class Application {
                 dir.mkdirs();
             }
             File user_file = new File(dir, "file_" + us.getName() + ".json");
-            if (!user_file.exists()) {
-                user_file.createNewFile();
-            }
+            user_file.createNewFile();
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(user_file, us.getInfo());
         }
         System.out.println("You have created json");
