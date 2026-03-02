@@ -1,0 +1,42 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.kotlin
+
+### IntelliJ IDEA ###
+Cheqmate/.idea/modules.xml
+Cheqmate/.idea/jarRepositories.xml
+Cheqmate/.idea/compiler.xml
+Cheqmate/.idea/libraries/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+Cheqmate/.apt_generated
+Cheqmate/.classpath
+Cheqmate/.factorypath
+Cheqmate/.project
+Cheqmate/.settings
+Cheqmate/.springBeans
+Cheqmate/.sts4-cache
+
+### NetBeans ###
+Cheqmate/nbproject/private/
+Cheqmate/nbbuild/
+Cheqmate/dist/
+Cheqmate/nbdist/
+Cheqmate/.nb-gradle/
+Cheqmate/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+Cheqmate/.vscode/
+
+### Mac OS ###
+Cheqmate/.DS_Store
+
+# Не нужон
+Cheqmate/src/main/java/user_files

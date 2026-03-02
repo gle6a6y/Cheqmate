@@ -21,6 +21,7 @@ public class Group {
     public void addCheque(Cheque cheque) {
         cheques.add(cheque);
     }
+
     public void buildGraph() {}
 
     public String getGroupName() {

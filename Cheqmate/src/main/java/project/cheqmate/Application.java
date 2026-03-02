@@ -9,14 +9,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Application {
 
     private final Scanner scanner;
-    List<User> users; // можно сделать мапу <имя чела, User>, чтоб быстро по имени можно было найти
-    List<Group> groups; // аналогично
+    State state;
     ObjectMapper objectMapper;
 
     Application(){
         scanner = new Scanner(System.in);
-        users = new ArrayList<>();
-        groups = new ArrayList<>();
+        state = new State();
         objectMapper = new ObjectMapper();
     }
 
@@ -57,7 +55,7 @@ public class Application {
                     printAll();
                     break;
                 case 6:
-                    make_json();
+                    make_json(); // почему он тут?
                     running = false;
                     break;
                 case 7:
@@ -80,7 +78,7 @@ public class Application {
 
         String username = scanner.nextLine();
         User user = new User(username);
-        users.add(user);
+        state.addUser(user);
 
         System.out.println("You created the user.");
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
@@ -94,7 +92,7 @@ public class Application {
 
         Group group = new Group(groupName);
 
-        groups.add(group);
+        state.addGroup(group);
 
         System.out.println("Whom to add to the group? Type the number of people:");
 
@@ -160,7 +158,7 @@ public class Application {
     }
 
     public void writeDebts() throws IOException {
-        for (User user: users) {
+        for (User user: state.getUsers()) {
             System.out.println(user.getName() + "'s debtors:");
             for(Map.Entry<User, Double> entry : user.getDebtors().entrySet()) {
                 String nameDebtor = entry.getKey().getName();
@@ -182,6 +180,7 @@ public class Application {
 
     private User findUserByName(String targetString) throws  IOException {
         User target = null;
+        List<User> users = state.getUsers();
         for (User user: users) {
             if (Objects.equals(user.getName(), targetString)) {
                 target = user;
@@ -199,6 +198,7 @@ public class Application {
 
     private Group findGroupByName(String targetString) {
         Group target = null;
+        List<Group> groups = state.getGroups();
         for (Group group: groups) {
             if (Objects.equals(group.getGroupName(), targetString)) {
                 target = group;
@@ -215,17 +215,17 @@ public class Application {
 
     private void printAll() {
         System.out.println("Users:");
-        for (User user: users) {
+        for (User user: state.getUsers()) {
             System.out.println(user.getName());
         }
         System.out.println("Groups:");
-        for (Group group: groups) {
+        for (Group group: state.getGroups()) {
             System.out.println(group.getGroupName());
         }
     }
 
     private void make_json() throws IOException {
-        for (User us : users) {
+        for (User us : state.getUsers()) {
             File dir = new File("src/main/java/user_files/");
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -279,6 +279,7 @@ public class Application {
         String userName = names.get(0);
         
         User user = null;
+        List<User> users = state.getUsers();
         for (User u : users) {
             if (u.getName().equals(userName)) {
                 user = u;
