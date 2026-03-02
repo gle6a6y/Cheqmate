@@ -5,30 +5,30 @@ target/
 .kotlin
 
 ### IntelliJ IDEA ###
-Cheqmate/.idea/modules.xml
-Cheqmate/.idea/jarRepositories.xml
-Cheqmate/.idea/compiler.xml
-Cheqmate/.idea/libraries/
+/.idea/modules.xml
+/.idea/jarRepositories.xml
+/.idea/compiler.xml
+/.idea/libraries/
 *.iws
 *.iml
 *.ipr
 
 ### Eclipse ###
-Cheqmate/.apt_generated
-Cheqmate/.classpath
-Cheqmate/.factorypath
-Cheqmate/.project
-Cheqmate/.settings
-Cheqmate/.springBeans
-Cheqmate/.sts4-cache
+/.apt_generated
+/.classpath
+/.factorypath
+/.project
+/.settings
+/.springBeans
+/.sts4-cache
 
 ### NetBeans ###
-Cheqmate/nbproject/private/
-Cheqmate/nbbuild/
-Cheqmate/dist/
-Cheqmate/nbdist/
-Cheqmate/.nb-gradle/
-Cheqmate/build/
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -39,4 +39,8 @@ Cheqmate/.vscode/
 Cheqmate/.DS_Store
 
 # Не нужон
-Cheqmate/src/main/java/user_files
+/src/main/java/user_files
+
+# Чтоб не попадало больше
+/.idea/
+/src/.gitignore
