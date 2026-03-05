@@ -1,8 +1,10 @@
 package project.cheqmate;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Getter;
 
+import java.util.ArrayList;
+
+@Getter
 public class Group {
     private final String groupName;
     private final ArrayList<User> members;
@@ -24,7 +26,4 @@ public class Group {
 
     public void buildGraph() {}
 
-    public String getGroupName() {
-        return groupName;
-    }
 }

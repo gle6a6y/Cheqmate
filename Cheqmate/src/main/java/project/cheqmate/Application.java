@@ -6,15 +6,18 @@ import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Application {
 
     private final Scanner scanner;
     State state;
+    FileStorage fileStorage;
     ObjectMapper objectMapper;
 
     Application(){
         scanner = new Scanner(System.in);
         state = new State();
+        fileStorage = new FileStorage();
         objectMapper = new ObjectMapper();
     }
 
@@ -27,12 +30,12 @@ public class Application {
             System.out.println("1. Create user.");
             System.out.println("2. Create group.");
             System.out.println("3. Add a cheque to the group.");
-            // System.out.println("4. Add a user to the group"); // пока не нужно, так как можно при создании группы добавлять
             System.out.println("4. Write the debts.");
             System.out.println("5. Print users and groups.");
             System.out.println("6. Exit.");
             System.out.println("7. Make json.");
             System.out.println("8. Load from json.");
+            System.out.println("9. Load last state.");
             System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
 
             int instructionNumber = scanner.nextInt();
@@ -40,13 +43,16 @@ public class Application {
 
             switch (instructionNumber) {
                 case 1:
-                    createUser();
+                    promptCreateUser();
+                    fileStorage.saveState(state);
                     break;
                 case 2:
                     createGroup();
+                    fileStorage.saveState(state);
                     break;
                 case 3:
-                    addCheque();
+                    promptAddCheque();
+                    fileStorage.saveState(state);
                     break;
                 case 4:
                     writeDebts();
@@ -64,6 +70,9 @@ public class Application {
                 case 8:
                     load_from_json_menu();
                     break;
+                case 9:
+                    fileStorage.loadState(state);
+                    break;
                 default:
                     System.out.println("Unknown command.");
             }
@@ -72,13 +81,13 @@ public class Application {
         scanner.close();
     }
 
-    public void createUser() throws IOException {
+    public void promptCreateUser() throws IOException {
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
         System.out.println("Enter the username:");
 
         String username = scanner.nextLine();
-        User user = new User(username);
-        state.addUser(user);
+
+        state.createUser(username);
 
         System.out.println("You created the user.");
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
@@ -90,9 +99,7 @@ public class Application {
 
         String groupName = scanner.nextLine();
 
-        Group group = new Group(groupName);
-
-        state.addGroup(group);
+        Group group = state.createGroup(groupName);
 
         System.out.println("Whom to add to the group? Type the number of people:");
 
@@ -104,14 +111,14 @@ public class Application {
         for (int i = 0; i < numberOfPeople; i++) {
             String name = scanner.nextLine();
             add_info(name, "group", groupName);
-            group.addMember(findUserByName(name));
+            state.addUserToGroup(group, findUserByName(name));
         }
 
         System.out.println("You created the group.");
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
     }
 
-    public void addCheque() throws IOException{
+    public void promptAddCheque() throws IOException{
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
         System.out.println("Add this cheque to which group? Type the group's name:");
 
@@ -135,8 +142,7 @@ public class Application {
         double total = scanner.nextDouble();
         scanner.nextLine(); // пропуск /n
 
-        Cheque cheque = new Cheque(chequeName, total, chequeOwner, whoPaid);
-        group.addCheque(cheque);
+        Cheque cheque = state.createCheque(group, chequeName, total, chequeOwner.getId(), whoPaid.getId());
 
         System.out.println("Whom to add to the group? Enter the number of people:");
         int numberOfPeople = scanner.nextInt();
@@ -148,14 +154,21 @@ public class Application {
             User user = findUserByName(name);
             double value = scanner.nextDouble();
             scanner.nextLine(); // пропуск /n
+
             String info = "name of cheque: " + chequeName + ", debt: " + Double.toString(value * total / 100) + ", paid by: " + whoPaidString;
             add_info(name, "cheque", info);
-            cheque.addUser(user, value);
+
+            state.addUserToCheque(cheque, user, value);
+
         }
+
+        state.applyCheque(cheque);
 
         System.out.println("You created the cheque in the group \"" + groupString + "\".");
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------");
     }
+
+
 
     public void writeDebts() throws IOException {
         for (User user: state.getUsers()) {
@@ -190,7 +203,7 @@ public class Application {
             System.out.println("There is no user with that name.");
             // придумать что делать дальше
             System.out.println("Please create user");
-            createUser();
+            promptCreateUser();
             target = users.get(users.size() - 1);
         }
         return target;
@@ -288,7 +301,7 @@ public class Application {
         }
         
         if (user == null) {
-            user = new User(userName);
+            user = new User(state.getNumberOfUsersAndIncrement(), userName);
             users.add(user);
         }
 
