@@ -1,4 +1,4 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +13,7 @@ public class FileStorage {
     File stateFile;
     ObjectMapper objectMapper;
 
-    FileStorage() {
+    public FileStorage() {
         path = new File("src/main/java/state/");
         if (!path.exists()) {
             path.mkdir();
@@ -22,42 +22,39 @@ public class FileStorage {
         objectMapper = new ObjectMapper();
     }
 
-    public void loadState(State state) throws IOException {
+    public void loadState(LegacyState state) throws IOException {
+        if (!stateFile.exists()) return;
         JsonNode root = objectMapper.readTree(stateFile);
         JsonNode users = root.get("users");
-        for(JsonNode user : users) {
+        if (users == null) return;
+        for (JsonNode user : users) {
             int id = user.get("id").asInt();
             String name = user.get("name").asText();
-
             User newUser = new User(id, name);
             state.addUser(newUser);
             state.setNumberOfUsers(id + 1);
         }
         JsonNode groups = root.get("groups");
-        for(JsonNode group : groups) {
-
+        if (groups == null) return;
+        for (JsonNode group : groups) {
             String groupName = group.get("groupName").asText();
             Group newGroup = new Group(groupName);
             state.addGroup(newGroup);
-
             JsonNode members = group.get("members");
-
-            for(JsonNode member : members) {
+            for (JsonNode member : members) {
                 int id = member.get("id").asInt();
                 newGroup.addMember(state.getUserById(id));
             }
-
             JsonNode cheques = group.get("cheques");
-            for(JsonNode cheque : cheques) {
+            for (JsonNode cheque : cheques) {
                 String name = cheque.get("name").asText();
                 double total = cheque.get("total").asDouble();
                 int ownerId = cheque.get("ownerId").asInt();
                 int whoPaidId = cheque.get("whoPaidId").asInt();
                 Cheque newCheque = new Cheque(name, total, ownerId, whoPaidId);
-
                 JsonNode proportions = cheque.get("proportions");
                 Iterator<String> fieldNames = proportions.fieldNames();
-                while(fieldNames.hasNext()) {
+                while (fieldNames.hasNext()) {
                     String key = fieldNames.next();
                     int userId = Integer.parseInt(key);
                     double percent = proportions.get(key).asDouble();
@@ -68,7 +65,7 @@ public class FileStorage {
         }
     }
 
-    public void saveState(State state) throws IOException {
+    public void saveState(LegacyState state) throws IOException {
         LinkedHashMap<String, Object> info = new LinkedHashMap<>();
         info.put("users", state.getUsers());
         info.put("groups", state.getGroups());

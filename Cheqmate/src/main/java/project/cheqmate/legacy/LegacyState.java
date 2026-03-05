@@ -1,4 +1,4 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,13 +10,13 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class State {
+public class LegacyState {
     private int numberOfUsers;
     private HashMap<Integer, User> userById;
-    private ArrayList<User> users; // можно сделать мапу <имя чела, User>, чтоб быстро по имени можно было найти
-    private ArrayList<Group> groups; // аналогично
+    private ArrayList<User> users;
+    private ArrayList<Group> groups;
 
-    State() {
+    public LegacyState() {
         numberOfUsers = 0;
         userById = new HashMap<>();
         users = new ArrayList<>();
@@ -71,14 +71,10 @@ public class State {
         for (Map.Entry<Integer, Double> e : cheque.getProportions().entrySet()) {
             int userId = e.getKey();
             double percent = e.getValue();
-            if (userId == cheque.getWhoPaidId()) {
-                continue;
-            }
+            if (userId == cheque.getWhoPaidId()) continue;
             double amount = cheque.getTotal() * percent / 100.0;
-
             User whoPaid = this.getUserById(cheque.getWhoPaidId());
             User person = this.getUserById(userId);
-
             whoPaid.addDebtors(person, amount);
             person.addCreditors(whoPaid, amount);
         }

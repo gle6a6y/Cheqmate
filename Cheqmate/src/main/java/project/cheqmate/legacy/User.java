@@ -1,9 +1,8 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +19,7 @@ public class User {
     @JsonIgnore
     private final LinkedHashMap<String, ArrayList<String>> info;
 
-    User(int id_, String name_) throws IOException {
+    public User(int id_, String name_) throws IOException {
         id = id_;
         debtors = new HashMap<>();
         creditors = new HashMap<>();

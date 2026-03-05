@@ -1,4 +1,4 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
 
 import lombok.Getter;
 
@@ -10,7 +10,7 @@ public class Group {
     private final ArrayList<User> members;
     private final ArrayList<Cheque> cheques;
 
-    Group(String groupName_) {
+    public Group(String groupName_) {
         groupName = groupName_;
         members = new ArrayList<>();
         cheques = new ArrayList<>();
@@ -23,7 +23,4 @@ public class Group {
     public void addCheque(Cheque cheque) {
         cheques.add(cheque);
     }
-
-    public void buildGraph() {}
-
 }

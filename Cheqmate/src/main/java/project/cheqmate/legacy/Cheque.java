@@ -1,4 +1,4 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
 
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ public class Cheque {
     private final int whoPaidId;
     private final HashMap<Integer, Double> proportions;
 
-    Cheque(String name_, double total_, int ownerId_, int whoPaidId_) {
+    public Cheque(String name_, double total_, int ownerId_, int whoPaidId_) {
         name = name_;
         total = total_;
         ownerId = ownerId_;
