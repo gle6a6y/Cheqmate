@@ -6,9 +6,6 @@ import org.springframework.stereotype.Service;
 import project.cheqmate.legacy.FileStorage;
 import project.cheqmate.legacy.LegacyState;
 import project.cheqmate.model.*;
-import project.cheqmate.model.Cheque;
-import project.cheqmate.model.Group;
-import project.cheqmate.model.User;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -94,6 +91,34 @@ public class LegacyFileStorageService implements StorageService {
             if (g.getGroupName().equals(groupName)) return toLegacyGroup(g);
         }
         return null;
+    }
+
+    @Override
+    public Group changeGroupName(int id, String newName) {
+        for (var g : state.getGroups()) {
+            //if (g.getId().equals(id)) {
+                g.setGroupName(newName);
+                persist();
+                return toLegacyGroup(g);
+            //}
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteGroup(int id) {
+        project.cheqmate.legacy.Group groupToDelete = null;
+        for (var g : state.getGroups()) {
+//            if (g.getId() == id) {
+//                groupToDelete = g;
+//                break;
+//            }
+        }
+
+        if (groupToDelete != null) {
+            state.getGroups().remove(groupToDelete);
+            persist();
+        }
     }
 
     @Override

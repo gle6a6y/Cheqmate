@@ -20,6 +20,8 @@ public interface StorageService {
     List<Group> getGroups();
 
     Group getGroupByName(String groupName);
+    Group changeGroupName(int id, String newName);
+    void deleteGroup(int id);
 
     Group addUserToGroup(int groupId, int userId);
 

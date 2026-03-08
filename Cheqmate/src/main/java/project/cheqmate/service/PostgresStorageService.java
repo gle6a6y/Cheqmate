@@ -64,6 +64,22 @@ public class PostgresStorageService implements StorageService {
     }
 
     @Override
+    public Group changeGroupName(int id, String newName) {
+        Group group = groupRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Group not found"));
+        group.setGroupName(newName);
+        return groupRepo.save(group);
+    }
+
+    @Override
+    @Transactional
+    public void deleteGroup(int id) {
+        Group group = groupRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + id));
+        groupRepo.delete(group);
+    }
+
+    @Override
     @Transactional
     public Group addUserToGroup(int groupId, int userId) {
         Group group = groupRepo.findById(groupId).orElseThrow();

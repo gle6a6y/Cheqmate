@@ -1,12 +1,14 @@
 package project.cheqmate.legacy;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
 @Getter
+@Setter
 public class Group {
-    private final String groupName;
+    private String groupName;
     private final ArrayList<User> members;
     private final ArrayList<Cheque> cheques;
 

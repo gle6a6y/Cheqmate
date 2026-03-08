@@ -23,7 +23,7 @@ public class Group {
     @Column(nullable = false)
     private String groupName;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "group_members",
             joinColumns = @JoinColumn(name = "group_id"),
