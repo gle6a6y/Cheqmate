@@ -1,14 +1,18 @@
-package project.cheqmate;
+package project.cheqmate.legacy;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
 
+@Getter
+@Setter
 public class Group {
-    private final String groupName;
+    private String groupName;
     private final ArrayList<User> members;
     private final ArrayList<Cheque> cheques;
 
-    Group(String groupName_) {
+    public Group(String groupName_) {
         groupName = groupName_;
         members = new ArrayList<>();
         cheques = new ArrayList<>();
@@ -20,10 +24,5 @@ public class Group {
 
     public void addCheque(Cheque cheque) {
         cheques.add(cheque);
-    }
-    public void buildGraph() {}
-
-    public String getGroupName() {
-        return groupName;
     }
 }
