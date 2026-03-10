@@ -22,50 +22,31 @@ public class GroupController {
 
     @PostMapping
     public Group createGroup(@RequestBody CreateGroupRequest req) {
-        Group group = storage.createGroup(req.getGroupName());
-        if (req.getMemberNames() != null) {
-            for (String name : req.getMemberNames()) {
-                storage.addUserToGroupByName(group.getGroupName(), name);
-            }
-        }
-        return storage.getGroupByName(group.getGroupName());
+        return storage.createGroupWithMembers(req.getGroupName(), req.getMemberNames());
     }
 
     @GetMapping
-    @Transactional(readOnly = true)
     public List<Group> getGroups() {
         return storage.getGroups();
     }
 
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
     public Group getGroup(@PathVariable int id) {
-        List<Group> groups = getGroups();
-        for (Group g : groups) {
-            if (g.getId().equals(id)) {
-                return g;
-            }
-        }
-        return null;
+        return storage.getGroupById(id);
     }
 
     @PostMapping("/{id}/members")
-    @Transactional
     public Group addMember(@PathVariable int id, @RequestBody AddMemberRequest req) {
-        Group group = storage.getGroups().stream()
-                .filter(g -> g.getId().equals(id)).findFirst().orElseThrow();
-        return storage.addUserToGroupByName(group.getGroupName(), req.getUserName());
+        return storage.addUserToGroup(id, req.getUserName());
     }
 
     @PatchMapping("/{id}")
-    @Transactional
     public Group change_name(@PathVariable int id, @RequestBody RenameRequest req) {
         return storage.changeGroupName(id, req.getNewName());
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
-    public void deleteGroup(@PathVariable int id) {
-        storage.deleteGroup(id);
+    public Group deleteGroup(@PathVariable int id) {
+        return storage.deleteGroup(id);
     }
 }

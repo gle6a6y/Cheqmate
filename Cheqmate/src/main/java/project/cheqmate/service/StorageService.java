@@ -17,18 +17,25 @@ public interface StorageService {
 
     Group createGroup(String groupName);
 
-    List<Group> getGroups();
+    Group createGroupWithMembers(String groupName, List<String> memberNames);
 
+    List<Group> getGroups();
+    Group getGroupById(int id);
     Group getGroupByName(String groupName);
     Group changeGroupName(int id, String newName);
-    void deleteGroup(int id);
+    Group deleteGroup(int id);
 
-    Group addUserToGroup(int groupId, int userId);
+    // Group addUserToGroup(int groupId, int userId);
+
+    Group addUserToGroup(int groupId, String userName);
 
     Group addUserToGroupByName(String groupName, String userName);
 
     Cheque createCheque(String groupName, String chequeName, double total,
                         String ownerName, String whoPaidName);
+
+    Cheque createCheque(String groupName, String chequeName, double total,
+                        String ownerName, String whoPaidName, Map<String, Double> proportions);
 
     void addUserToCheque(int chequeId, int userId, double percent);
 

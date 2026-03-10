@@ -43,14 +43,14 @@ public class LegacyFileStorageService implements StorageService {
         }
         persist();
         var legacy = state.getUsers().get(state.getUsers().size() - 1);
-        return toLegacyUser(legacy);
+        return toUserFromLegacyUser(legacy);
     }
 
     @Override
     public List<User> getUsers() {
         List<User> result = new ArrayList<>();
         for (var u : state.getUsers()) {
-            result.add(toLegacyUser(u));
+            result.add(toUserFromLegacyUser(u));
         }
         return result;
     }
@@ -58,13 +58,13 @@ public class LegacyFileStorageService implements StorageService {
     @Override
     public User getUserById(int id) {
         var u = state.getUserById(id);
-        return u == null ? null : toLegacyUser(u);
+        return u == null ? null : toUserFromLegacyUser(u);
     }
 
     @Override
     public User getUserByName(String name) {
         for (var u : state.getUsers()) {
-            if (u.getName().equals(name)) return toLegacyUser(u);
+            if (u.getName().equals(name)) return toUserFromLegacyUser(u);
         }
         return null;
     }
@@ -73,22 +73,27 @@ public class LegacyFileStorageService implements StorageService {
     public Group createGroup(String groupName) {
         var g = state.createGroup(groupName);
         persist();
-        return toLegacyGroup(g);
+        return toGroupFromLegacyGroup(g);
     }
+
+    @Override
+    public Group createGroupWithMembers(String groupName, List<String> memberNames) {return null;} // дописать потом если надо будет
 
     @Override
     public List<Group> getGroups() {
         List<Group> result = new ArrayList<>();
         for (var g : state.getGroups()) {
-            result.add(toLegacyGroup(g));
+            result.add(toGroupFromLegacyGroup(g));
         }
         return result;
     }
 
+    public Group getGroupById(int id) { return null; } // дописать потом если надо будет
+
     @Override
     public Group getGroupByName(String groupName) {
         for (var g : state.getGroups()) {
-            if (g.getGroupName().equals(groupName)) return toLegacyGroup(g);
+            if (g.getGroupName().equals(groupName)) return toGroupFromLegacyGroup(g);
         }
         return null;
     }
@@ -99,14 +104,14 @@ public class LegacyFileStorageService implements StorageService {
             //if (g.getId().equals(id)) {
                 g.setGroupName(newName);
                 persist();
-                return toLegacyGroup(g);
+                return toGroupFromLegacyGroup(g);
             //}
         }
         return null;
     }
 
     @Override
-    public void deleteGroup(int id) {
+    public Group deleteGroup(int id) {
         project.cheqmate.legacy.Group groupToDelete = null;
         for (var g : state.getGroups()) {
 //            if (g.getId() == id) {
@@ -119,12 +124,15 @@ public class LegacyFileStorageService implements StorageService {
             state.getGroups().remove(groupToDelete);
             persist();
         }
+        return toGroupFromLegacyGroup(groupToDelete);
     }
 
-    @Override
-    public Group addUserToGroup(int groupId, int userId) {
-        throw new UnsupportedOperationException("Use addUserToGroupByName for legacy mode");
-    }
+//    @Override
+//    public Group addUserToGroup(int groupId, int userId) {
+//        throw new UnsupportedOperationException("Use addUserToGroupByName for legacy mode");
+//    }
+
+    public Group addUserToGroup(int groupId, String userName) {return null;} // потом допишем если надо
 
     @Override
     public Group addUserToGroupByName(String groupName, String userName) {
@@ -133,7 +141,7 @@ public class LegacyFileStorageService implements StorageService {
         if (lg != null && lu != null) {
             state.addUserToGroup(lg, lu);
             persist();
-            return toLegacyGroup(lg);
+            return toGroupFromLegacyGroup(lg);
         }
         return null;
     }
@@ -155,6 +163,11 @@ public class LegacyFileStorageService implements StorageService {
         c.setProportions(lc.getProportions());
         return c;
     }
+
+    @Override
+    public Cheque createCheque(String groupName, String chequeName, double total, String ownerName, String whoPaidName, Map<String, Double> proportions) {
+        return null;
+    } // пока не надо
 
     @Override
     public void addUserToCheque(int chequeId, int userId, double percent) {
@@ -203,16 +216,16 @@ public class LegacyFileStorageService implements StorageService {
         return null;
     }
 
-    private User toLegacyUser(project.cheqmate.legacy.User lu) {
+    private User toUserFromLegacyUser(project.cheqmate.legacy.User lu) {
         User u = new User(lu.getName());
         u.setId(lu.getId());
         return u;
     }
 
-    private Group toLegacyGroup(project.cheqmate.legacy.Group lg) {
+    private Group toGroupFromLegacyGroup(project.cheqmate.legacy.Group lg) {
         Group g = new Group(lg.getGroupName());
         List<User> members = new ArrayList<>();
-        for (var m : lg.getMembers()) members.add(toLegacyUser(m));
+        for (var m : lg.getMembers()) members.add(toUserFromLegacyUser(m));
         g.setMembers(members);
         return g;
     }
