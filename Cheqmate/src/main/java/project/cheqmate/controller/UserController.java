@@ -37,4 +37,9 @@ public class UserController {
     public Map<String, List<Map<String, Object>>> getDebts(@PathVariable int id) {
         return storage.getDebts(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        storage.deleteUser(id);
+    }
 }
