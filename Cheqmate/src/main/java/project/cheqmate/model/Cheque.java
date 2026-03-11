@@ -35,7 +35,6 @@ public class Cheque {
 
     @ManyToOne
     @JoinColumn(name = "group_id")
-    @JsonIgnore
     private Group group;
 
     @ElementCollection

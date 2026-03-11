@@ -23,4 +23,9 @@ public class ChequeController {
                 req.getGroupName(), req.getChequeName(), req.getTotal(),
                 req.getOwnerName(), req.getWhoPaidName(), req.getProportions());
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteCheque(@PathVariable int id) {
+        storage.deleteCheque(id);
+    }
 }
