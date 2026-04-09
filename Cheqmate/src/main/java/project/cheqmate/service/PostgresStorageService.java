@@ -16,13 +16,15 @@ public class PostgresStorageService implements StorageService {
     private final GroupRepository groupRepo;
     private final ChequeRepository chequeRepo;
     private final DebtRepository debtRepo;
+    private final DebtOptimizationService debtOptimizationService;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
-                                  ChequeRepository chequeRepo, DebtRepository debtRepo) {
+                                  ChequeRepository chequeRepo, DebtRepository debtRepo, DebtOptimizationService debtOptimizationService) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
         this.debtRepo = debtRepo;
+        this.debtOptimizationService = debtOptimizationService;
     }
 
     @Override
@@ -258,9 +260,10 @@ public class PostgresStorageService implements StorageService {
                 debt.setAmount(debt.getAmount() + amount);
                 debtRepo.save(debt);
             } else {
-                debtRepo.save(new Debt(whoPaid, person, amount));
+                debtRepo.save(new Debt(whoPaid, person, cheque.getGroup(), amount));
             }
         }
+        debtOptimizationService.optimize(cheque.getGroup());
     }
 
     @Override

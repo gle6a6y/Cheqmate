@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Optional;
+
 @Entity
 @Table(name = "debts")
 @Getter
@@ -16,6 +18,10 @@ public class Debt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+     @ManyToOne
+     @JoinColumn(name = "group_id", nullable = false)
+     private Group group;
+
     @ManyToOne
     @JoinColumn(name = "creditor_id", nullable = false)
     private User creditor;
@@ -26,9 +32,10 @@ public class Debt {
 
     private double amount;
 
-    public Debt(User creditor, User debtor, double amount) {
+    public Debt(User creditor, User debtor, Group group, double amount) {
         this.creditor = creditor;
         this.debtor = debtor;
+        this.group = group;
         this.amount = amount;
     }
 }
