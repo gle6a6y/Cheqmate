@@ -111,7 +111,7 @@ public class LegacyFileStorageService implements StorageService {
     }
 
     @Override
-    public Group deleteGroup(int id) {
+    public void deleteGroup(int id) {
         project.cheqmate.legacy.Group groupToDelete = null;
         for (var g : state.getGroups()) {
 //            if (g.getId() == id) {
@@ -124,7 +124,15 @@ public class LegacyFileStorageService implements StorageService {
             state.getGroups().remove(groupToDelete);
             persist();
         }
-        return toGroupFromLegacyGroup(groupToDelete);
+    }
+
+    @Override
+    public void deleteUser(int id) { // потом допишем
+        return;
+    }
+
+    public void deleteCheque(int id) { // потом допишем
+        return;
     }
 
 //    @Override

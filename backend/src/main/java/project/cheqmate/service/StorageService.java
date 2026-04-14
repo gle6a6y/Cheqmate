@@ -23,8 +23,11 @@ public interface StorageService {
     Group getGroupById(int id);
     Group getGroupByName(String groupName);
     Group changeGroupName(int id, String newName);
-    Group deleteGroup(int id);
+    void deleteGroup(int id);
 
+    void deleteUser(int id);
+
+    void deleteCheque(int id);
     // Group addUserToGroup(int groupId, int userId);
 
     Group addUserToGroup(int groupId, String userName);

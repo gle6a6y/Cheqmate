@@ -46,7 +46,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{id}")
-    public Group deleteGroup(@PathVariable int id) {
-        return storage.deleteGroup(id);
+    public void deleteGroup(@PathVariable int id) {
+        storage.deleteGroup(id);
     }
 }

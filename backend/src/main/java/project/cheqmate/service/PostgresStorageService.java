@@ -16,13 +16,15 @@ public class PostgresStorageService implements StorageService {
     private final GroupRepository groupRepo;
     private final ChequeRepository chequeRepo;
     private final DebtRepository debtRepo;
+    private final DebtOptimizationService debtOptimizationService;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
-                                  ChequeRepository chequeRepo, DebtRepository debtRepo) {
+                                  ChequeRepository chequeRepo, DebtRepository debtRepo, DebtOptimizationService debtOptimizationService) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
         this.debtRepo = debtRepo;
+        this.debtOptimizationService = debtOptimizationService;
     }
 
     @Override
@@ -102,11 +104,65 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
-    public Group deleteGroup(int id) {
+    public void deleteGroup(int id) {
         Group group = groupRepo.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Group not found: " + id));
+
+        List<Integer> chequeIds = group.getCheques().stream().map(Cheque::getId).toList();
+
+        for (Integer chequeId : chequeIds) {
+            deleteCheque(chequeId);
+        }
+
         groupRepo.delete(group);
-        return group;
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(int id) {
+        User user = userRepo.findById(id).orElseThrow(() -> new NoSuchElementException("User not found: " + id));
+        List<Debt> asCreditor = debtRepo.findByCreditor(user);
+        debtRepo.deleteAll(asCreditor);
+        List<Debt> asDebtor = debtRepo.findByDebtor(user);
+        debtRepo.deleteAll(asDebtor);
+
+        List<Group> groups = groupRepo.findByMembersContaining(user);
+        for (Group g : groups) {
+            g.getMembers().remove(user);
+        }
+        groupRepo.saveAll(groups);
+
+        userRepo.delete(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCheque(int chequeId) {
+        Cheque cheque = chequeRepo.findById(chequeId).orElseThrow();
+        User whoPaid = cheque.getWhoPaid();
+
+        for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
+            int userId = entry.getKey();
+            double percent = entry.getValue();
+
+            // тот, кто платил, сам себе не должен
+            if (userId == whoPaid.getId()) {
+                continue;
+            }
+
+            double amount = cheque.getTotal() * percent / 100.0;
+            User person = userRepo.findById(userId).orElseThrow();
+
+            Debt debt = debtRepo.findByCreditorAndDebtor(whoPaid, person).orElseThrow(() -> new NoSuchElementException("Debt not found"));
+            double newAmount = debt.getAmount() - amount;
+            if (newAmount <= 1e-6) {
+                debtRepo.delete(debt);
+            } else {
+                debt.setAmount(newAmount);
+                debtRepo.save(debt);
+            }
+        }
+        chequeRepo.delete(cheque);
     }
 
 //    @Override
@@ -171,7 +227,9 @@ public class PostgresStorageService implements StorageService {
             cheque.addUser(user.getId(), amount);
         }
         group.addCheque(cheque);
-        return chequeRepo.save(cheque);
+        chequeRepo.save(cheque);
+        applyCheque(cheque.getId());
+        return cheque;
     }
 
     @Override
@@ -202,9 +260,10 @@ public class PostgresStorageService implements StorageService {
                 debt.setAmount(debt.getAmount() + amount);
                 debtRepo.save(debt);
             } else {
-                debtRepo.save(new Debt(whoPaid, person, amount));
+                debtRepo.save(new Debt(whoPaid, person, cheque.getGroup(), amount));
             }
         }
+        debtOptimizationService.optimize(cheque.getGroup());
     }
 
     @Override
