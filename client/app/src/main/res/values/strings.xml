@@ -4,7 +4,7 @@
     <string name="start_tagline">Простое решение для общих расходов</string>
     <string name="create_account">Создать аккаунт</string>
     <string name="sign_in">Войти</string>
-    <string name="email_hint">Email</string>
+    <string name="login_hint">Логин</string>
     <string name="password_hint">Пароль</string>
     <string name="sign_up">Зарегистрироваться</string>
     <string name="already_have_account_leading">Уже есть аккаунт? </string>

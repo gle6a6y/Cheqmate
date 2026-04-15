@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface StorageService {
 
-    User createUser(String name);
+    User createUser(String name, String password);
 
     List<User> getUsers();
 

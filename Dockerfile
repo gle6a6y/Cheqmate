@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
-COPY Cheqmate/pom.xml pom.xml
-COPY Cheqmate/src src
+COPY backend/pom.xml pom.xml
+COPY backend/src src
 RUN apt-get update && apt-get install -y maven && \
     mvn -f pom.xml package -DskipTests
 

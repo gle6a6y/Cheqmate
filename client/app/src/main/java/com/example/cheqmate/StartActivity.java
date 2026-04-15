@@ -20,7 +20,7 @@ public class StartActivity extends AppCompatActivity {
         btnCreateAccount.setOnClickListener(v ->
                 startActivity(new Intent(this, SignUpActivity.class)));
 
-        // Экран входа пока не реализован
-        btnSignIn.setOnClickListener(v -> { /* no-op */ });
+        btnSignIn.setOnClickListener(v ->
+                startActivity(new Intent(this, LoginActivity.class)));
     }
 }

@@ -1,6 +1,7 @@
 package project.cheqmate.service;
 
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.cheqmate.model.*;
@@ -17,20 +18,27 @@ public class PostgresStorageService implements StorageService {
     private final ChequeRepository chequeRepo;
     private final DebtRepository debtRepo;
     private final DebtOptimizationService debtOptimizationService;
+    private final PasswordEncoder passwordEncoder;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
-                                  ChequeRepository chequeRepo, DebtRepository debtRepo, DebtOptimizationService debtOptimizationService) {
+                                  ChequeRepository chequeRepo, DebtRepository debtRepo,
+                                  DebtOptimizationService debtOptimizationService,
+                                  PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
         this.debtRepo = debtRepo;
         this.debtOptimizationService = debtOptimizationService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public User createUser(String name) {
-        User user = new User(name);
+    public User createUser(String name, String password) {
+        if (userRepo.findByName(name).isPresent()) {
+            throw new IllegalArgumentException("User with name '" + name + "' already exists");
+        }
+        User user = new User(name, passwordEncoder.encode(password));
         return userRepo.save(user);
     }
 

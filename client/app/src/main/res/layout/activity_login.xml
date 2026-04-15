@@ -11,7 +11,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sign_in"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="32dp"
+            android:layout_gravity="center_horizontal"/>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilLogin"
@@ -25,8 +36,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:autofillHints="username"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:autofillHints="username" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -43,12 +53,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:autofillHints="password"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:autofillHints="password" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSignUp"
+            android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -56,20 +65,21 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minHeight="52dp"
-            android:text="@string/sign_up"
+            android:text="@string/sign_in"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:backgroundTint="@null"
             app:cornerRadius="12dp" />
 
         <TextView
-            android:id="@+id/tvAlreadyHaveAccount"
+            android:id="@+id/tvDontHaveAccount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:gravity="center"
             android:textColor="@color/black"
             android:textSize="14sp"
-            tools:text="Уже есть аккаунт? Войти" />
+            tools:text="Нет аккаунта? Зарегистрироваться" />
+
     </LinearLayout>
 </ScrollView>

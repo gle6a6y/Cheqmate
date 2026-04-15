@@ -21,8 +21,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(nullable = false)
+    private String password;
 
     @ManyToMany(mappedBy = "members")
     @JsonIgnore
@@ -32,8 +35,9 @@ public class User {
     @JsonIgnore
     private LinkedHashMap<String, ArrayList<String>> info = new LinkedHashMap<>();
 
-    public User(String name) {
+    public User(String name, String password) {
         this.name = name;
+        this.password = password;
         this.info = new LinkedHashMap<>();
         ArrayList<String> names = new ArrayList<>();
         names.add(name);

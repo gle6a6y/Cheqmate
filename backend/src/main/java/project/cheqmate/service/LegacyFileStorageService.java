@@ -1,3 +1,4 @@
+/*
 package project.cheqmate.service;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +36,7 @@ public class LegacyFileStorageService implements StorageService {
     }
 
     @Override
-    public User createUser(String name) {
+    public User createUser(String name, String password) {
         try {
             state.createUser(name);
         } catch (IOException e) {
@@ -238,3 +239,4 @@ public class LegacyFileStorageService implements StorageService {
         return g;
     }
 }
+*/

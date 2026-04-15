@@ -1,7 +1,6 @@
 package project.cheqmate.controller;
 
 import org.springframework.web.bind.annotation.*;
-import project.cheqmate.dto.CreateUserRequest;
 import project.cheqmate.model.User;
 import project.cheqmate.service.StorageService;
 
@@ -16,11 +15,6 @@ public class UserController {
 
     public UserController(StorageService storage) {
         this.storage = storage;
-    }
-
-    @PostMapping
-    public User createUser(@RequestBody CreateUserRequest req) {
-        return storage.createUser(req.getName());
     }
 
     @GetMapping

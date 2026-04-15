@@ -58,8 +58,10 @@ public class Cli {
     private void createUser() {
         System.out.println("Enter the username:");
         String name = scanner.nextLine();
+        System.out.println("Enter the password:");
+        String password = scanner.nextLine();
 
-        storage.createUser(name);
+        storage.createUser(name, password);
 
         System.out.println("You created the user.");
     }
@@ -82,7 +84,9 @@ public class Cli {
 
             if (user == null) {
                 System.out.println("User not found, creating: " + name);
-                storage.createUser(name);
+                System.out.println("Enter password for new user:");
+                String password = scanner.nextLine();
+                storage.createUser(name, password);
             }
 
             storage.addUserToGroupByName(groupName, name);
