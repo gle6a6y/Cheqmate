@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#C7C5C5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="cheqmate"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="16dp" />
+
+        <TextView
+            android:id="@+id/btnGroups"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Группы"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:background="@drawable/white_oval_button"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="16dp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btnAnalytics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Аналитика"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:background="@drawable/analytics_button"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="16dp" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/btnHome"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/circle_button"
+            android:padding="16dp"
+            android:src="@drawable/ic_home"
+            android:layout_marginEnd="24dp" />
+
+        <ImageView
+            android:id="@+id/btnAdd"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/circle_button"
+            android:padding="16dp"
+            android:src="@drawable/ic_add" />
+    </LinearLayout>
+
+</LinearLayout>
