@@ -58,7 +58,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnAdd.setOnClickListener(v -> {
-            Toast.makeText(this, "Добавить группу", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, CreateGroupActivity.class);
+            startActivity(intent);
+        });
+
+        TextView btnLogout = findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(v -> {
+            com.example.cheqmate.network.SessionManager sessionManager = new com.example.cheqmate.network.SessionManager(this);
+            sessionManager.clearData();
+            Intent intent = new Intent(MainActivity.this, StartActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 

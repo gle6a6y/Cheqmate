@@ -10,46 +10,61 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Создание группы"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilLogin"
+            android:id="@+id/tilGroupName"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Логин">
+            android:hint="Название группы">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etLogin"
+                android:id="@+id/etGroupName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:autofillHints="emailAddress"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/cgParticipants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:chipSpacing="8dp" />
+
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
+            android:id="@+id/tilParticipants"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="@string/password_hint"
-            app:endIconMode="password_toggle">
+            android:hint="Участники (введите имя и запятую)">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
+                android:id="@+id/etParticipants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:autofillHints="password"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLogin"
+            android:id="@+id/btnCreateGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -57,20 +72,11 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minHeight="52dp"
-            android:text="Войти"
+            android:text="Создать"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:backgroundTint="@null"
             app:cornerRadius="12dp" />
 
-        <TextView
-            android:id="@+id/tvDontHaveAccount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:text="Нет аккаунта? Зарегистрироваться" />
     </LinearLayout>
 </ScrollView>

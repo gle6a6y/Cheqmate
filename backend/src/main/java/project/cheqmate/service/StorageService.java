@@ -1,5 +1,6 @@
 package project.cheqmate.service;
 
+import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 
 import java.util.List;
@@ -17,9 +18,10 @@ public interface StorageService {
 
     Group createGroup(String groupName);
 
-    Group createGroupWithMembers(String groupName, List<String> memberNames);
+    void createGroupWithMembers(String groupName, List<String> memberNames);
 
     List<Group> getGroups();
+    List<GroupSummaryResponse> getGroupsByUser(String userName);
     Group getGroupById(int id);
     Group getGroupByName(String groupName);
     Group changeGroupName(int id, String newName);

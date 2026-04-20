@@ -1,37 +1,87 @@
 package com.example.cheqmate.viewmodel;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.model.Group;
+import com.example.cheqmate.network.ApiService;
+import com.example.cheqmate.network.NetworkClient;
+import com.example.cheqmate.network.SessionManager;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class GroupsViewModel extends AndroidViewModel {
 
-    private MutableLiveData<List<Group>> groups = new MutableLiveData<>();
+    private final MutableLiveData<List<Group>> groups = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final SessionManager sessionManager;
 
     public GroupsViewModel(@NonNull Application application) {
         super(application);
-        loadMockData();
+        sessionManager = new SessionManager(application);
+        loadGroups();
     }
 
-    private void loadMockData() {
-        List<Group> mockGroups = new ArrayList<>();
-        mockGroups.add(new Group(1, "Все для похода", "12.07", 4, 500, 320, "ВП"));
-        mockGroups.add(new Group(2, "Ресторан", "12.07", 4, 1200, 0, "РЕ"));
-        mockGroups.add(new Group(3, "День рождения", "12.07", 3, 700, 340, "ДР"));
-        mockGroups.add(new Group(4, "Путешествие", "11.07", 5, 0, 1500, "ПУ"));
-        mockGroups.add(new Group(5, "Продукты", "10.07", 2, 300, 0, "ПР"));
-        groups.setValue(mockGroups);
+    public void loadGroups() {
+        String token = sessionManager.fetchAuthToken();
+        if (token == null) {
+            errorMessage.setValue("Токен отсутствует. Войдите заново.");
+            return;
+        }
+
+        ApiService apiService = NetworkClient.getApiService();
+        apiService.getMyGroups("Bearer " + token).enqueue(new Callback<List<GroupResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<GroupResponse>> call, @NonNull Response<List<GroupResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Group> uiGroups = response.body().stream()
+                            .map(dto -> new Group(
+                                    dto.getId(),
+                                    dto.getName(),
+                                    "Сегодня", // хз для чего lastActivity, поэтому пока так
+                                    dto.getParticipantsCount(),
+                                    dto.getIncome(),
+                                    dto.getExpense(),
+                                    generateIcon(dto.getName())
+                            ))
+                            .collect(Collectors.toList());
+                    groups.setValue(uiGroups);
+                } else if (response.code() == 401) {
+                    errorMessage.setValue("Сессия истекла. Пожалуйста, войдите снова.");
+                } else {
+                    errorMessage.setValue("Ошибка сервера: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<GroupResponse>> call, @NonNull Throwable t) {
+                errorMessage.setValue("Ошибка сети: " + t.getMessage());
+                Log.e("GroupsViewModel", "Error loading groups", t);
+            }
+        });
+    }
+
+    private String generateIcon(String name) {
+        if (name == null || name.length() < 2) return "GR";
+        return name.substring(0, 2).toUpperCase();
     }
 
     public LiveData<List<Group>> getGroups() {
         return groups;
+    }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
     }
 }

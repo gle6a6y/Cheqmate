@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 import project.cheqmate.repository.*;
 
@@ -70,7 +71,7 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
-    public Group createGroupWithMembers(String groupName, List<String> memberNames) {
+    public void createGroupWithMembers(String groupName, List<String> memberNames) {
         Group group = new Group(groupName);
         for (String name : memberNames) {
             User user = getUserByName(name);
@@ -79,13 +80,45 @@ public class PostgresStorageService implements StorageService {
             }
             group.addMember(user);
         }
-        return groupRepo.save(group);
+        groupRepo.save(group);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Group> getGroups() {
         return groupRepo.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GroupSummaryResponse> getGroupsByUser(String userName) {
+        User user = getUserByName(userName);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + userName);
+        }
+        List<Group> groups = groupRepo.findByMembersContaining(user);
+        List<GroupSummaryResponse> summaries = new ArrayList<>();
+
+        for (Group group : groups) {
+            double income = 0;
+            double expense = 0;
+            List<Debt> debts = debtRepo.findByGroupId(group.getId());
+            for (Debt debt : debts) {
+                if (debt.getCreditor().getId().equals(user.getId())) {
+                    income += debt.getAmount();
+                } else if (debt.getDebtor().getId().equals(user.getId())) {
+                    expense += debt.getAmount();
+                }
+            }
+            summaries.add(new GroupSummaryResponse(
+                    group.getId(),
+                    group.getGroupName(),
+                    group.getMembers().size(),
+                    income,
+                    expense
+            ));
+        }
+        return summaries;
     }
 
     @Override
