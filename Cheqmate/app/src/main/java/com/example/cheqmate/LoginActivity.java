@@ -2,7 +2,7 @@ package com.example.cheqmate;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,28 +12,30 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 
-public class MainActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        setContentView(R.layout.activity_login);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        MaterialButton btnGroups = findViewById(R.id.btnGroups);
-        MaterialButton btnAnalytics = findViewById(R.id.btnAnalytics);
-
-        btnGroups.setOnClickListener(v -> {
-            Toast.makeText(this, "Страница групп пока не готова", Toast.LENGTH_SHORT).show();
+        MaterialButton btnLogin = findViewById(R.id.btnLogin);
+        btnLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
         });
 
-        btnAnalytics.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AnalyticsActivity.class);
+        TextView tvDontHaveAccount = findViewById(R.id.tvDontHaveAccount);
+        tvDontHaveAccount.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
             startActivity(intent);
         });
     }

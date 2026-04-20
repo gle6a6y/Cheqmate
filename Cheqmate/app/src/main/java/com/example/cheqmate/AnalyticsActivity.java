@@ -2,6 +2,7 @@ package com.example.cheqmate;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -41,6 +42,8 @@ public class AnalyticsActivity extends AppCompatActivity {
         // Шапка
         tvProjectName = findViewById(R.id.tvProjectName);
         tvAnalyticsTitle = findViewById(R.id.tvAnalyticsTitle);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         // Блок 1
         tvOwedToYou = findViewById(R.id.tvOwedToYou);
