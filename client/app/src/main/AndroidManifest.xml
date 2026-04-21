@@ -40,6 +40,12 @@
         <activity
             android:name=".CreateGroupActivity"
             android:exported="false" />
+        <activity
+            android:name=".GroupDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreateExpenseActivity"
+            android:exported="false" />
 
 </application>
 
