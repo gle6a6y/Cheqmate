@@ -42,6 +42,7 @@ public interface StorageService {
     Cheque createCheque(String groupName, String chequeName, double total,
                         String ownerName, String whoPaidName, Map<String, Double> proportions);
 
+    Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName);
     void addUserToCheque(int chequeId, int userId, double percent);
 
     void applyCheque(int chequeId);

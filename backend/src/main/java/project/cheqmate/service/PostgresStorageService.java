@@ -275,6 +275,25 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
+    public Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName) {
+        Group group = groupRepo.findByGroupName(groupName)
+                .orElseThrow(() -> new NoSuchElementException("Group not found"));
+        
+        List<User> members = group.getMembers();
+        if (members.isEmpty()) {
+            throw new IllegalStateException("Group has no members");
+        }
+        
+        User loser = members.get(new Random().nextInt(members.size()));
+        
+        Map<String, Double> proportions = Map.of(loser.getName(), 100.0);
+        
+        return createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")", 
+                            total, ownerName, loser.getName(), proportions);
+    }
+
+    @Override
+    @Transactional
     public void addUserToCheque(int chequeId, int userId, double percent) {
         Cheque cheque = chequeRepo.findById(chequeId).orElseThrow();
         cheque.addUser(userId, percent);

@@ -3,6 +3,7 @@ package project.cheqmate.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import project.cheqmate.dto.CreateChequeRequest;
+import project.cheqmate.dto.FortuneWheelRequest;
 import project.cheqmate.dto.RecognizeChequeRequest;
 import project.cheqmate.model.Cheque;
 import project.cheqmate.service.ChequeRecognizeService;
@@ -26,6 +27,12 @@ public class ChequeController {
         return storage.createCheque(
                 req.getGroupName(), req.getChequeName(), req.getTotal(),
                 req.getOwnerName(), req.getWhoPaidName(), req.getProportions());
+    }
+
+    @PostMapping("/fortune-wheel")
+    public Cheque playFortuneWheel(@RequestBody FortuneWheelRequest req) {
+        return storage.playFortuneWheel(
+                req.getGroupName(), req.getChequeName(), req.getTotal(), req.getOwnerName());
     }
 
     @PostMapping({"/recognize"})
