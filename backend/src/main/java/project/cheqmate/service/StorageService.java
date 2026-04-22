@@ -48,6 +48,7 @@ public interface StorageService {
     void applyCheque(int chequeId);
 
     Map<String, List<Map<String, Object>>> getDebts(int userId);
+    Map<String, List<Map<String, Object>>> getDebtsByUsername(String username);
 
     List<Debt> getAllDebts();
 }

@@ -1,4 +1,4 @@
-package com.example.cheqmate;
+package com.example.cheqmate.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.cheqmate.R;
+import com.example.cheqmate.GroupDetailsActivity;
 
 import java.util.List;
 

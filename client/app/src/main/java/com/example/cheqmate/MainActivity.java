@@ -50,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnAnalytics.setOnClickListener(v -> {
-            Toast.makeText(this, "Аналитика", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, AnalyticsActivity.class);
+            startActivity(intent);
         });
 
         btnHome.setOnClickListener(v -> {
@@ -70,6 +71,14 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (viewModel != null) {
+            viewModel.loadGroups();
+        }
     }
 
     private void openAnalytics(int groupId) {

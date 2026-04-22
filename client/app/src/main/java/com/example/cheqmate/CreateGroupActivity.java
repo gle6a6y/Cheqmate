@@ -103,8 +103,7 @@ public class CreateGroupActivity extends AppCompatActivity {
 
         ApiService apiService = NetworkClient.getApiService();
         GroupCreateRequest request = new GroupCreateRequest(name, members);
-        
-        // Добавим логи для проверки
+
         android.util.Log.d("CREATE_GROUP", "Sending JSON: name=" + name + ", members=" + members);
 
         apiService.createGroup("Bearer " + token, request).enqueue(new Callback<Void>() {

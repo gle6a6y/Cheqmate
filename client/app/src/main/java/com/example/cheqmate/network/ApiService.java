@@ -1,5 +1,6 @@
 package com.example.cheqmate.network;
 
+import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
@@ -25,4 +26,7 @@ public interface ApiService {
 
     @GET("/api/groups/my")
     Call<List<GroupResponse>> getMyGroups(@Header("Authorization") String token);
+
+    @GET("/api/users/me/debts")
+    Call<DebtResponse> getMyDebts(@Header("Authorization") String token);
 }

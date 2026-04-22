@@ -328,6 +328,14 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional(readOnly = true)
+    public Map<String, List<Map<String, Object>>> getDebtsByUsername(String username) {
+        User user = userRepo.findByName(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+        return getDebts(user.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Map<String, List<Map<String, Object>>> getDebts(int userId) {
         User user = userRepo.findById(userId).orElseThrow();
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
