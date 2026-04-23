@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -43,6 +45,9 @@ public class Cheque {
     @Column(name = "percent")
     private Map<Integer, Double> proportions = new HashMap<>();
 
+    @OneToMany(mappedBy = "cheque", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChequeItem> items = new ArrayList<>();
+
     public Cheque(String name, double total, User owner, User whoPaid) {
         this.name = name;
         this.total = total;
@@ -52,5 +57,10 @@ public class Cheque {
 
     public void addUser(int userId, double percent) {
         proportions.put(userId, percent);
+    }
+
+    public void addItem(ChequeItem item) {
+        items.add(item);
+        item.setCheque(this);
     }
 }

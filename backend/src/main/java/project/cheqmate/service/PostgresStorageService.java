@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.cheqmate.dto.ChequeItemRequest;
 import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 import project.cheqmate.repository.*;
@@ -206,15 +207,6 @@ public class PostgresStorageService implements StorageService {
         chequeRepo.delete(cheque);
     }
 
-//    @Override
-//    @Transactional
-//    public Group addUserToGroup(int groupId, int userId) {
-//        Group group = groupRepo.findById(groupId).orElseThrow();
-//        User user = userRepo.findById(userId).orElseThrow();
-//        group.addMember(user);
-//        return groupRepo.save(group);
-//    }
-
     @Override
     @Transactional
     public Group addUserToGroup(int groupId, String userName) {
@@ -250,23 +242,65 @@ public class PostgresStorageService implements StorageService {
     @Transactional
     public Cheque createCheque(String groupName, String chequeName, double total,
                                String ownerName, String whoPaidName, Map<String, Double> proportions) {
+        return createCheque(groupName, chequeName, total, ownerName, whoPaidName, proportions, null);
+    }
 
-        Group group = groupRepo.findByGroupName(groupName).orElseThrow();
-        User owner = userRepo.findByName(ownerName).orElseThrow();
-        User whoPaid = userRepo.findByName(whoPaidName).orElseThrow();
+    @Override
+    @Transactional
+    public Cheque createCheque(String groupName, String chequeName, double total,
+                               String ownerName, String whoPaidName, Map<String, Double> proportions,
+                               List<ChequeItemRequest> itemRequests) {
+
+        Group group = groupRepo.findByGroupName(groupName).orElseThrow(() -> new NoSuchElementException("Group not found: " + groupName));
+        User owner = userRepo.findByName(ownerName).orElseThrow(() -> new NoSuchElementException("Owner not found: " + ownerName));
+        User whoPaid = userRepo.findByName(whoPaidName).orElseThrow(() -> new NoSuchElementException("WhoPaid not found: " + whoPaidName));
+        
         Cheque cheque = new Cheque(chequeName, total, owner, whoPaid);
-        if (proportions == null) {
-            throw new IllegalArgumentException("There aren't proportions");
+
+        Map<String, Double> finalProportions = new HashMap<>();
+        if (proportions != null) {
+            finalProportions.putAll(proportions);
         }
-        for(Map.Entry<String, Double> entry : proportions.entrySet()) {
-            String userName = entry.getKey();
-            double amount = entry.getValue();
-            User user = getUserByName(userName);
-            if (user == null) {
-                throw new IllegalArgumentException("User not found: " + userName);
+
+        if (itemRequests != null && !itemRequests.isEmpty()) {
+            Map<String, Double> userShares = new HashMap<>();
+            for (ChequeItemRequest itemReq : itemRequests) {
+                ChequeItem item = new ChequeItem(itemReq.getName(), itemReq.getPrice(), itemReq.getQuantity());
+                double itemTotal = itemReq.getPrice() * itemReq.getQuantity();
+                
+                List<String> participants = itemReq.getParticipantNames();
+                if (participants != null && !participants.isEmpty()) {
+                    double share = itemTotal / participants.size();
+                    for (String pName : participants) {
+                        User p = getUserByName(pName);
+                        if (p != null) {
+                            item.getParticipants().add(p);
+                            userShares.put(pName, userShares.getOrDefault(pName, 0.0) + share);
+                        }
+                    }
+                }
+                cheque.addItem(item);
             }
-            cheque.addUser(user.getId(), amount);
+            
+            // Если пропорции не присланы явно, берем их из позиций
+            if (finalProportions.isEmpty()) {
+                for (Map.Entry<String, Double> shareEntry : userShares.entrySet()) {
+                    finalProportions.put(shareEntry.getKey(), (shareEntry.getValue() / total) * 100.0);
+                }
+            }
         }
+
+        if (finalProportions.isEmpty()) {
+            throw new IllegalArgumentException("No proportions or items provided to calculate debt");
+        }
+        
+        for (Map.Entry<String, Double> entry : finalProportions.entrySet()) {
+            User user = getUserByName(entry.getKey());
+            if (user != null) {
+                cheque.addUser(user.getId(), entry.getValue());
+            }
+        }
+
         group.addCheque(cheque);
         chequeRepo.save(cheque);
         applyCheque(cheque.getId());

@@ -26,7 +26,8 @@ public class ChequeController {
     public Cheque createCheque(@RequestBody CreateChequeRequest req) {
         return storage.createCheque(
                 req.getGroupName(), req.getChequeName(), req.getTotal(),
-                req.getOwnerName(), req.getWhoPaidName(), req.getProportions());
+                req.getOwnerName(), req.getWhoPaidName(), req.getProportions(),
+                req.getItems());
     }
 
     @PostMapping("/fortune-wheel")

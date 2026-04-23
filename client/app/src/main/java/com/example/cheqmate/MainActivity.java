@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getGroups().observe(this, groupList -> {
             groups = groupList;
             GroupAdapter adapter = new GroupAdapter(groupList, groupId -> {
-                openAnalytics(groupId);
+                openGroupDetails(groupId);
             });
             recyclerView.setAdapter(adapter);
         });
@@ -81,11 +81,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openAnalytics(int groupId) {
+    private void openGroupDetails(int groupId) {
         for (Group group : groups) {
             if (group.getId() == groupId) {
-                Intent intent = new Intent(MainActivity.this, AnalyticsActivity.class);
-                intent.putExtra("group", (Parcelable) group);
+                Intent intent = new Intent(MainActivity.this, GroupDetailsActivity.class);
+                intent.putExtra("GROUP_ID", group.getId());
+                intent.putExtra("GROUP_NAME", group.getName());
+                // В реальном приложении здесь нужно передавать список участников
+                // Например: intent.putStringArrayListExtra("MEMBERS", group.getMemberNames());
                 startActivity(intent);
                 break;
             }

@@ -1,5 +1,6 @@
 package com.example.cheqmate.network;
 
+import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
@@ -29,4 +30,7 @@ public interface ApiService {
 
     @GET("/api/users/me/debts")
     Call<DebtResponse> getMyDebts(@Header("Authorization") String token);
+
+    @POST("/api/cheques")
+    Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);
 }

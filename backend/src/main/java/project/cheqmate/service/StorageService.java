@@ -1,5 +1,6 @@
 package project.cheqmate.service;
 
+import project.cheqmate.dto.ChequeItemRequest;
 import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 
@@ -41,6 +42,10 @@ public interface StorageService {
 
     Cheque createCheque(String groupName, String chequeName, double total,
                         String ownerName, String whoPaidName, Map<String, Double> proportions);
+
+    Cheque createCheque(String groupName, String chequeName, double total,
+                        String ownerName, String whoPaidName, Map<String, Double> proportions,
+                        List<ChequeItemRequest> items);
 
     Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName);
     void addUserToCheque(int chequeId, int userId, double percent);

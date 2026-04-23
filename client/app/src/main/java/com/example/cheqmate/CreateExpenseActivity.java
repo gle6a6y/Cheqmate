@@ -4,53 +4,79 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
+import com.example.cheqmate.adapter.ChequeItemsAdapter;
+import com.example.cheqmate.dto.ChequeItemRequest;
+import com.example.cheqmate.dto.ChequeRequest;
+import com.example.cheqmate.network.NetworkClient;
+import com.example.cheqmate.network.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CreateExpenseActivity extends AppCompatActivity {
 
-    private final List<String> participants = Arrays.asList("Катя", "Иван", "Олег", "Алина");
+    private List<String> participants = new ArrayList<>();
 
     private TextInputLayout tilExpenseName;
-    private TextInputLayout tilAmount;
-    private TextInputLayout tilPayer;
     private TextInputEditText etExpenseName;
-    private TextInputEditText etAmount;
     private AutoCompleteTextView actPayer;
-    private ChipGroup cgSplitBetween;
+    private RecyclerView rvPositions;
+    private TextView tvTotalAmount;
+    
+    private List<ChequeItemRequest> itemsList = new ArrayList<>();
+    private ChequeItemsAdapter adapter;
+    private String groupName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_expense);
 
+        groupName = getIntent().getStringExtra("GROUP_NAME");
+        ArrayList<String> members = getIntent().getStringArrayListExtra("MEMBERS");
+        
+        if (groupName == null) groupName = "Общая";
+        if (members != null) {
+            participants.addAll(members);
+        } else {
+            // Фолбэк если данные не переданы (для теста)
+            participants.add("ivan");
+        }
+
         initViews();
+        setupRecyclerView();
         setupPayerDropdown();
-        setupSplitBetweenChips();
         setupActions();
+        
+        addNewPosition();
     }
 
     private void initViews() {
         tilExpenseName = findViewById(R.id.tilExpenseName);
-        tilAmount = findViewById(R.id.tilAmount);
-        tilPayer = findViewById(R.id.tilPayer);
-
         etExpenseName = findViewById(R.id.etExpenseName);
-        etAmount = findViewById(R.id.etAmount);
         actPayer = findViewById(R.id.actPayer);
-        cgSplitBetween = findViewById(R.id.cgSplitBetween);
+        rvPositions = findViewById(R.id.rvPositions);
+        tvTotalAmount = findViewById(R.id.tvTotalAmount);
+    }
+
+    private void setupRecyclerView() {
+        adapter = new ChequeItemsAdapter(itemsList, participants, this::calculateTotal);
+        rvPositions.setLayoutManager(new LinearLayoutManager(this));
+        rvPositions.setAdapter(adapter);
     }
 
     private void setupPayerDropdown() {
@@ -60,77 +86,84 @@ public class CreateExpenseActivity extends AppCompatActivity {
                 participants
         );
         actPayer.setAdapter(payerAdapter);
-        actPayer.setText(participants.get(0), false);
-    }
-
-    private void setupSplitBetweenChips() {
-        for (String participant : participants) {
-            Chip chip = new Chip(this);
-            chip.setText(participant);
-            chip.setCheckable(true);
-            chip.setChecked(true);
-            chip.setChipBackgroundColorResource(R.color.button_secondary_background);
-            chip.setShapeAppearanceModel(chip.getShapeAppearanceModel().withCornerSize(8f));
-            cgSplitBetween.addView(chip);
+        if (!participants.isEmpty()) {
+            actPayer.setText(participants.get(0), false);
         }
     }
 
     private void setupActions() {
-        ImageButton btnBack = findViewById(R.id.btnBack);
-        MaterialButton btnAddExpense = findViewById(R.id.btnAddExpense);
-
-        btnBack.setOnClickListener(v -> finish());
-        btnAddExpense.setOnClickListener(v -> submitExpense());
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnAddPosition).setOnClickListener(v -> addNewPosition());
+        findViewById(R.id.btnAddExpense).setOnClickListener(v -> submitCheque());
     }
 
-    private void submitExpense() {
-        tilExpenseName.setError(null);
-        tilAmount.setError(null);
-        tilPayer.setError(null);
+    private void addNewPosition() {
+        itemsList.add(new ChequeItemRequest("", 0, 1, new ArrayList<>(Collections.singletonList(participants.get(0)))));
+        adapter.notifyItemInserted(itemsList.size() - 1);
+        calculateTotal();
+    }
 
-        String expenseName = etExpenseName.getText() != null ? etExpenseName.getText().toString().trim() : "";
-        String amount = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
-        String payer = actPayer.getText() != null ? actPayer.getText().toString().trim() : "";
-        List<String> selectedParticipants = getSelectedParticipants();
+    private void calculateTotal() {
+        double total = 0;
+        for (ChequeItemRequest item : itemsList) {
+            total += item.getPrice() * item.getQuantity();
+        }
+        tvTotalAmount.setText(String.format("%.2f ₽", total));
+    }
 
-        boolean hasError = false;
-        if (TextUtils.isEmpty(expenseName)) {
-            tilExpenseName.setError("Введите название");
-            hasError = true;
-        }
-        if (TextUtils.isEmpty(amount)) {
-            tilAmount.setError("Введите сумму");
-            hasError = true;
-        }
-        if (TextUtils.isEmpty(payer)) {
-            tilPayer.setError("Выберите плательщика");
-            hasError = true;
-        }
-        if (selectedParticipants.isEmpty()) {
-            Toast.makeText(this, "Выберите участников для разделения", Toast.LENGTH_SHORT).show();
-            hasError = true;
-        }
-
-        if (hasError) {
+    private void submitCheque() {
+        String chequeName = etExpenseName.getText().toString().trim();
+        String whoPaid = actPayer.getText().toString();
+        
+        if (TextUtils.isEmpty(chequeName)) {
+            tilExpenseName.setError("Введите название чека");
             return;
         }
 
-        Toast.makeText(this, "Расход добавлен", Toast.LENGTH_SHORT).show();
-        finish();
+        if (itemsList.isEmpty()) {
+            Toast.makeText(this, "Добавьте хотя бы одну позицию", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        double total = 0;
+        for (ChequeItemRequest item : itemsList) {
+            total += item.getPrice() * item.getQuantity();
+        }
+
+        SessionManager sessionManager = new SessionManager(this);
+        String ownerName = sessionManager.fetchUserName();
+        if (ownerName == null) ownerName = whoPaid;
+
+        ChequeRequest request = new ChequeRequest(
+                groupName,
+                chequeName,
+                total,
+                ownerName,
+                whoPaid,
+                itemsList
+        );
+
+        sendToServer(request);
     }
 
-    private List<String> getSelectedParticipants() {
-        List<String> selected = new ArrayList<>();
-        for (int i = 0; i < cgSplitBetween.getChildCount(); i++) {
-            if (!(cgSplitBetween.getChildAt(i) instanceof Chip)) {
-                continue;
-            }
+    private void sendToServer(ChequeRequest request) {
+        String token = new SessionManager(this).fetchAuthToken();
+        NetworkClient.getApiService().createCheque("Bearer " + token, request)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(CreateExpenseActivity.this, "Чек успешно сохранен", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            Toast.makeText(CreateExpenseActivity.this, "Ошибка сервера: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
-            Chip chip = (Chip) cgSplitBetween.getChildAt(i);
-            if (chip.isChecked()) {
-                selected.add(chip.getText().toString());
-            }
-        }
-        return selected;
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(CreateExpenseActivity.this, "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
