@@ -9,8 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cheqmate.R;
 import com.example.cheqmate.GroupDetailsActivity;
+import com.example.cheqmate.R;
 
 import java.util.List;
 

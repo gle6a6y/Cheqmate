@@ -1,7 +1,6 @@
 package com.example.cheqmate.dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class DebtResponse {
     private List<DebtItem> debtors;

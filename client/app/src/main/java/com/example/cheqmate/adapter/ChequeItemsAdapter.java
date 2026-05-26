@@ -72,7 +72,7 @@ public class ChequeItemsAdapter extends RecyclerView.Adapter<ChequeItemsAdapter.
             String selected = participants.get(pos);
             item.setParticipantNames(Collections.singletonList(selected));
             onDataChanged.run();
-        });
+        }); 
 
         holder.btnRemove.setOnClickListener(v -> {
             int currentPos = holder.getAdapterPosition();

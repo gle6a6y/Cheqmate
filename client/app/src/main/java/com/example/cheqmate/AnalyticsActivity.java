@@ -2,9 +2,9 @@ package com.example.cheqmate;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -93,7 +93,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         String token = sessionManager.fetchAuthToken();
 
         if (token == null) {
-            Toast.makeText(this, "Вы не авторизованы", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Ошибка сессии, войдите снова", Toast.LENGTH_SHORT).show();
             return;
         }
 

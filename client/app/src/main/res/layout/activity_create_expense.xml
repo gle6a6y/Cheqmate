@@ -121,6 +121,21 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btnScanExpense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_button_primary"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="52dp"
+            android:text="Сканировать чек"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="12dp" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddExpense"
             android:layout_width="match_parent"
@@ -135,5 +150,6 @@
             android:textColor="@color/white"
             app:backgroundTint="@null"
             app:cornerRadius="12dp" />
+
     </LinearLayout>
 </ScrollView>

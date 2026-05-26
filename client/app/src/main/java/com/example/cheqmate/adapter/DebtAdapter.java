@@ -5,10 +5,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.cheqmate.R;
+
 import com.example.cheqmate.AnalyticsActivity;
+import com.example.cheqmate.R;
+
 import java.util.List;
 
 public class DebtAdapter extends RecyclerView.Adapter<DebtAdapter.DebtViewHolder> {

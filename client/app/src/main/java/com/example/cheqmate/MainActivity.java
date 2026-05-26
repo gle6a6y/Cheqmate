@@ -2,17 +2,19 @@ package com.example.cheqmate;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.cheqmate.adapter.GroupAdapter;
 import com.example.cheqmate.model.Group;
 import com.example.cheqmate.viewmodel.GroupsViewModel;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {

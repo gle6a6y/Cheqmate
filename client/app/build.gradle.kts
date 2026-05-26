@@ -42,9 +42,11 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.recyclerview)
+    implementation(libs.zxing.embedded)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

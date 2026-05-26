@@ -24,11 +24,14 @@ public class ChequeController {
 
     @PostMapping
     public Cheque createCheque(@RequestBody CreateChequeRequest req) {
+        // System.out.println(req.getTotal());
         return storage.createCheque(
                 req.getGroupName(), req.getChequeName(), req.getTotal(),
                 req.getOwnerName(), req.getWhoPaidName(), req.getProportions(),
                 req.getItems());
     }
+
+
 
     @PostMapping("/fortune-wheel")
     public Cheque playFortuneWheel(@RequestBody FortuneWheelRequest req) {
@@ -38,7 +41,7 @@ public class ChequeController {
 
     @PostMapping({"/recognize"})
     public ResponseEntity<String> recognizeCheque(@RequestBody RecognizeChequeRequest req) {
-        String chequeJson = recognizeService.callPython(req.getQr());
+        String chequeJson = recognizeService.callProverkaCheka(req.getQr());
         return ResponseEntity.ok(chequeJson);
     }
 

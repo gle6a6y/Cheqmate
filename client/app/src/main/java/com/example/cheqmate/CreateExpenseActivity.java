@@ -2,11 +2,13 @@ package com.example.cheqmate;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,10 +16,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cheqmate.adapter.ChequeItemsAdapter;
 import com.example.cheqmate.dto.ChequeItemRequest;
 import com.example.cheqmate.dto.ChequeRequest;
+import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,10 +45,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private AutoCompleteTextView actPayer;
     private RecyclerView rvPositions;
     private TextView tvTotalAmount;
-    
+
     private List<ChequeItemRequest> itemsList = new ArrayList<>();
     private ChequeItemsAdapter adapter;
     private String groupName;
+    private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,20 +58,31 @@ public class CreateExpenseActivity extends AppCompatActivity {
 
         groupName = getIntent().getStringExtra("GROUP_NAME");
         ArrayList<String> members = getIntent().getStringArrayListExtra("MEMBERS");
-        
+
         if (groupName == null) groupName = "Общая";
         if (members != null) {
             participants.addAll(members);
         } else {
-            // Фолбэк если данные не переданы (для теста)
             participants.add("ivan");
         }
+
+        qrScannerLauncher = registerForActivityResult(
+                new ScanContract(),
+                result -> {
+                    String qrRaw = result.getContents();
+                    if (qrRaw == null) {
+                        return;
+                    }
+                    Log.d("SCAN", "Code: " + qrRaw);
+                    fetchChequeFromQr(qrRaw);
+                }
+        );
 
         initViews();
         setupRecyclerView();
         setupPayerDropdown();
         setupActions();
-        
+
         addNewPosition();
     }
 
@@ -95,6 +116,66 @@ public class CreateExpenseActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnAddPosition).setOnClickListener(v -> addNewPosition());
         findViewById(R.id.btnAddExpense).setOnClickListener(v -> submitCheque());
+        findViewById(R.id.btnScanExpense).setOnClickListener(v -> launchQrScanner());
+    }
+
+    private void launchQrScanner() {
+        ScanOptions options = new ScanOptions();
+        options.setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES);
+        options.setPrompt("Наведите камеру на QR-код чека");
+        options.setBeepEnabled(true);
+        options.setOrientationLocked(false);
+        qrScannerLauncher.launch(options);
+    }
+
+    private void fetchChequeFromQr(String qrRaw) {
+        String token = new SessionManager(this).fetchAuthToken();
+        RecognizeChequeRequest request = new RecognizeChequeRequest(qrRaw);
+        NetworkClient.getApiService().recognizeCheque("Bearer " + token, request)
+                .enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            parseChequeJson(response.body());
+                        } else {
+                            Toast.makeText(CreateExpenseActivity.this, "Ошибка сервера: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        Toast.makeText(CreateExpenseActivity.this, "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void parseChequeJson(String json) {
+        try {
+            itemsList.clear();
+            JsonObject root = new JsonParser().parse(json).getAsJsonObject();
+            JsonArray positions = root.get("data").getAsJsonObject()
+                    .get("json").getAsJsonObject()
+                    .get("items").getAsJsonArray();
+            String defaultParticipant = participants.isEmpty() ? "" : participants.get(0);
+            for (JsonElement position : positions) {
+                JsonObject item = position.getAsJsonObject();
+                String name = item.get("name").getAsString();
+                double price = Double.parseDouble(item.get("price").getAsString());
+                int quantity = Integer.parseInt(item.get("quantity").getAsString());
+                itemsList.add(new ChequeItemRequest(
+                        name,
+                        price,
+                        quantity,
+                        new ArrayList<>(Collections.singletonList(defaultParticipant))
+                ));
+            }
+            adapter.notifyDataSetChanged();
+            calculateTotal();
+            Log.d("SCAN", "items in JSON: " + positions.size());
+            Log.d("SCAN", "itemsList size: " + itemsList.size());
+        } catch (Exception e) {
+            Toast.makeText(this, "Не удалось разобрать чек: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void addNewPosition() {
@@ -114,7 +195,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private void submitCheque() {
         String chequeName = etExpenseName.getText().toString().trim();
         String whoPaid = actPayer.getText().toString();
-        
+
         if (TextUtils.isEmpty(chequeName)) {
             tilExpenseName.setError("Введите название чека");
             return;
@@ -132,7 +213,10 @@ public class CreateExpenseActivity extends AppCompatActivity {
 
         SessionManager sessionManager = new SessionManager(this);
         String ownerName = sessionManager.fetchUserName();
-        if (ownerName == null) ownerName = whoPaid;
+        if (ownerName == null) {
+            Toast.makeText(this, "Ошибка сессии, войдите снова", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         ChequeRequest request = new ChequeRequest(
                 groupName,

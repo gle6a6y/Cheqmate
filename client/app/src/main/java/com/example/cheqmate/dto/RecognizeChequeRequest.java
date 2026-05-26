@@ -7,11 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class LoginRequest {
-    @SerializedName("name")
-    private String name;
-
-    @SerializedName("password")
-    private String password;
-
+public class RecognizeChequeRequest {
+    @SerializedName("qr")
+    private String qr;
 }

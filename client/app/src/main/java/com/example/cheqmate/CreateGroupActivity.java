@@ -45,6 +45,11 @@ public class CreateGroupActivity extends AppCompatActivity {
         cgParticipants = findViewById(R.id.cgParticipants);
         btnCreateGroup = findViewById(R.id.btnCreateGroup);
 
+        String currentUser = sessionManager.fetchUserName();
+        if (currentUser != null) {
+            addParticipantChipIfAbsent(currentUser);
+        }
+
         etParticipants.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -58,7 +63,7 @@ public class CreateGroupActivity extends AppCompatActivity {
                 if (text.endsWith(",")) {
                     String name = text.substring(0, text.length() - 1).trim();
                     if (!name.isEmpty()) {
-                        addParticipantChip(name);
+                        addParticipantChipIfAbsent(name);
                     }
                     etParticipants.setText("");
                 }
@@ -77,21 +82,30 @@ public class CreateGroupActivity extends AppCompatActivity {
         });
     }
 
-    private void addParticipantChip(String name) {
+    private void addParticipantChipIfAbsent(String name) {
+        if (name == null || name.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < cgParticipants.getChildCount(); i++) {
+            Chip existing = (Chip) cgParticipants.getChildAt(i);
+            if (name.equals(existing.getText().toString())) {
+                return;
+            }
+        }
+
         Chip chip = new Chip(this);
         chip.setText(name);
         chip.setCloseIconVisible(true);
         chip.setOnCloseIconClickListener(v -> cgParticipants.removeView(chip));
-        // Стиль чипов
         chip.setChipBackgroundColorResource(R.color.button_secondary_background);
         chip.setShapeAppearanceModel(chip.getShapeAppearanceModel().withCornerSize(8f));
-        
+
         cgParticipants.addView(chip);
     }
 
     private void performCreateGroup(String name, List<String> members) {
-        if (name.isEmpty() || members.isEmpty()) {
-            Toast.makeText(this, "Название и участники обязательны", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Укажите название группы", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -104,7 +118,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         ApiService apiService = NetworkClient.getApiService();
         GroupCreateRequest request = new GroupCreateRequest(name, members);
 
-        android.util.Log.d("CREATE_GROUP", "Sending JSON: name=" + name + ", members=" + members);
+        // android.util.Log.d("CREATE_GROUP", "Sending JSON: name=" + name + ", members=" + members);
 
         apiService.createGroup("Bearer " + token, request).enqueue(new Callback<Void>() {
             @Override

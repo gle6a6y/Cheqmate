@@ -6,6 +6,7 @@ import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.dto.RecognizeChequeRequest;
 
 import java.util.List;
 
@@ -33,4 +34,7 @@ public interface ApiService {
 
     @POST("/api/cheques")
     Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);
+
+    @POST("/api/cheques/recognize")
+    Call<String> recognizeCheque(@Header("Authorization") String token, @Body RecognizeChequeRequest request);
 }
