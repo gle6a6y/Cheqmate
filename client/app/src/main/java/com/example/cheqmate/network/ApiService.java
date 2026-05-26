@@ -1,6 +1,7 @@
 package com.example.cheqmate.network;
 
 import com.example.cheqmate.dto.ChequeRequest;
+import com.example.cheqmate.dto.CreateGameSessionRequest;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
@@ -37,4 +38,7 @@ public interface ApiService {
 
     @POST("/api/cheques/recognize")
     Call<String> recognizeCheque(@Header("Authorization") String token, @Body RecognizeChequeRequest request);
+
+    @POST("/api/game-sessions")
+    Call<Long> createGameSession(@Header("Authorization") String token, @Body CreateGameSessionRequest request);
 }

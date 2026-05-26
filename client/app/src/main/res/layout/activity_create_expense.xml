@@ -136,6 +136,31 @@
             app:backgroundTint="@null"
             app:cornerRadius="12dp" />
 
+        <Button
+            android:id="@+id/btnPlayGame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_button_primary"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="52dp"
+            android:text="Сыграть в игру"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="12dp" />
+
+        <TextView
+            android:id="@+id/tvGameInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddExpense"
             android:layout_width="match_parent"

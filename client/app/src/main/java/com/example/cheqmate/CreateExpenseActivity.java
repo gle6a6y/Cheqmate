@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cheqmate.adapter.ChequeItemsAdapter;
 import com.example.cheqmate.dto.ChequeItemRequest;
 import com.example.cheqmate.dto.ChequeRequest;
+import com.example.cheqmate.dto.CreateGameSessionRequest;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
@@ -45,6 +46,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private AutoCompleteTextView actPayer;
     private RecyclerView rvPositions;
     private TextView tvTotalAmount;
+    private TextView tvGameInfo;
 
     private List<ChequeItemRequest> itemsList = new ArrayList<>();
     private ChequeItemsAdapter adapter;
@@ -92,6 +94,8 @@ public class CreateExpenseActivity extends AppCompatActivity {
         actPayer = findViewById(R.id.actPayer);
         rvPositions = findViewById(R.id.rvPositions);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
+        tvGameInfo = findViewById(R.id.tvGameInfo);
+
     }
 
     private void setupRecyclerView() {
@@ -117,6 +121,39 @@ public class CreateExpenseActivity extends AppCompatActivity {
         findViewById(R.id.btnAddPosition).setOnClickListener(v -> addNewPosition());
         findViewById(R.id.btnAddExpense).setOnClickListener(v -> submitCheque());
         findViewById(R.id.btnScanExpense).setOnClickListener(v -> launchQrScanner());
+        findViewById(R.id.btnPlayGame).setOnClickListener(v -> createGameSession());
+    }
+
+    private void createGameSession() {
+        if (participants.isEmpty()) {
+            Toast.makeText(this, "Нет участников для игры", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String token = new SessionManager(this).fetchAuthToken();
+        CreateGameSessionRequest request = new CreateGameSessionRequest(participants);
+
+        NetworkClient.getApiService().createGameSession("Bearer " + token, request)
+                .enqueue(new Callback<Long>() {
+                    @Override
+                    public void onResponse(Call<Long> call, Response<Long> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            long sessionId = response.body();
+                            tvGameInfo.setVisibility(TextView.VISIBLE);
+                            tvGameInfo.setText("Сессия №" + sessionId + ". Подключение по ssh: ...");
+                            // Toast.makeText(CreateExpenseActivity.this, "Сессия: " + sessionId, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(CreateExpenseActivity.this,
+                                    "Ошибка сервера: " + response.code(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Long> call, Throwable t) {
+                        Toast.makeText(CreateExpenseActivity.this,
+                                "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void launchQrScanner() {
