@@ -2,6 +2,8 @@ package com.example.cheqmate;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,17 +13,31 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.YourDebtsAdapter;
+import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class GroupDetailsActivity extends AppCompatActivity {
 
     private MaterialButton btnPay;
     private String groupName;
     private int groupId;
+
+    // Переменные для хранения реальных данных
+    private final ArrayList<String> realGroupMembers = new ArrayList<>();
+    private final List<DebtPerson> debtPeople = new ArrayList<>();
+    private YourDebtsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,13 +49,12 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         initHeaderAndActions();
         setupDebtsList();
-        loadData();
+        loadData(); // Переписанный метод загрузки
     }
 
     private void initHeaderAndActions() {
         ImageButton btnBack = findViewById(R.id.btnBack);
         ImageButton btnAddExpense = findViewById(R.id.btnAddExpense);
-        ImageButton btnAddCheck = findViewById(R.id.btnAddCheck);
         btnPay = findViewById(R.id.btnPay);
 
         btnBack.setOnClickListener(v -> finish());
@@ -47,19 +62,19 @@ public class GroupDetailsActivity extends AppCompatActivity {
         btnAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(GroupDetailsActivity.this, CreateExpenseActivity.class);
             intent.putExtra("GROUP_NAME", groupName);
-            
-            // Передаем участников. В идеале они должны быть в модели Group.
-            // Пока добавим текущего пользователя и "alex" для теста, чтобы избежать ошибки 500 на бэкенде
-            ArrayList<String> members = new ArrayList<>();
-            String currentUser = new SessionManager(this).fetchUserName();
-            if (currentUser != null) members.add(currentUser);
-            members.add("alex"); 
-            
-            intent.putStringArrayListExtra("MEMBERS", members);
+
+            // Если сервер еще не успел вернуть участников группы, подстрахуемся текущим юзером
+            if (realGroupMembers.isEmpty()) {
+                String currentUser = new SessionManager(this).fetchUserName();
+                if (currentUser != null) realGroupMembers.add(currentUser);
+            }
+
+            // Передаем список РЕАЛЬНЫХ участников в активити создания чека
+            intent.putStringArrayListExtra("MEMBERS", realGroupMembers);
             startActivity(intent);
         });
 
-        btnAddCheck.setOnClickListener(v ->
+        findViewById(R.id.btnAddCheck).setOnClickListener(v ->
                 Toast.makeText(this, "Скоро будет", Toast.LENGTH_SHORT).show()
         );
 
@@ -72,31 +87,89 @@ public class GroupDetailsActivity extends AppCompatActivity {
         RecyclerView rvYourDebts = findViewById(R.id.rvYourDebts);
         rvYourDebts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        List<DebtPerson> debtPeople = new ArrayList<>();
-        // Здесь пока заглушки, в будущем данные должны приходить из API долгов группы
-        debtPeople.add(new DebtPerson(R.drawable.ic_home, "Катя", "700 ₽"));
-        debtPeople.add(new DebtPerson(R.drawable.ic_plane, "Иван", "300 ₽"));
-
-        YourDebtsAdapter adapter = new YourDebtsAdapter(debtPeople, this::onDebtSelected);
+        // Инициализируем адаптер с пустым (пока что) списком debtPeople
+        adapter = new YourDebtsAdapter(debtPeople, this::onDebtSelected);
         rvYourDebts.setAdapter(adapter);
     }
 
     private void loadData() {
         TextView tvGroupName = findViewById(R.id.tvGroupName);
+        tvGroupName.setText(groupName != null ? groupName : "Группа");
+
+        SessionManager sessionManager = new SessionManager(this);
+        String token = "Bearer " + sessionManager.fetchAuthToken();
+        String currentUserName = sessionManager.fetchUserName();
+
+        NetworkClient.getApiService().getMyDebts(token).enqueue(new Callback<Map<String, List<Map<String, Object>>>>() {
+            @Override
+            public void onResponse(Call<Map<String, List<Map<String, Object>>>> call, Response<Map<String, List<Map<String, Object>>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    parseAndDisplayDebts(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, List<Map<String, Object>>>> call, Throwable t) {
+                Toast.makeText(GroupDetailsActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        NetworkClient.getApiService().getMyDebts(token).enqueue(new Callback<DebtResponse>() {
+            @Override
+            public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    parseAndDisplayDebts(response.body(), currentUserName);
+                } else {
+                    Toast.makeText(GroupDetailsActivity.this, "Ошибка сервера при загрузке долгов", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<DebtResponse> call, Throwable t) {
+                Toast.makeText(GroupDetailsActivity.this, "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void parseAndDisplayDebts(Map<String, List<Map<String, Object>>> debtsMap) {
         TextView tvOwedToYou = findViewById(R.id.tvOwedToYou);
         TextView tvYouOwe = findViewById(R.id.tvYouOwe);
 
-        tvGroupName.setText(groupName != null ? groupName : "Группа");
-        // Эти данные тоже должны загружаться через API
-        tvOwedToYou.setText("0 ₽");
-        tvYouOwe.setText("0 ₽");
+        double totalOwedToMe = 0;
+        double totalIOwe = 0;
+
+        debtPeople.clear();
+
+        List<Map<String, Object>> debtors = debtsMap.get("debtors");
+        if (debtors != null) {
+            for (Map<String, Object> d : debtors) {
+                String name = (String) d.get("name");
+                double amount = ((Number) d.get("amount")).doubleValue();
+                totalOwedToMe += amount;
+                debtPeople.add(new DebtPerson(R.drawable.ic_home, name, String.format("+%.2f ₽", amount)));
+            }
+        }
+
+        List<Map<String, Object>> creditors = debtsMap.get("creditors");
+        if (creditors != null) {
+            for (Map<String, Object> c : creditors) {
+                String name = (String) c.get("name");
+                double amount = ((Number) c.get("amount")).doubleValue();
+                totalIOwe += amount;
+                debtPeople.add(new DebtPerson(R.drawable.ic_plane, name, String.format("-%.2f ₽", amount)));
+            }
+        }
+
+        tvOwedToYou.setText(String.format("%.2f ₽", totalOwedToMe));
+        tvYouOwe.setText(String.format("%.2f ₽", totalIOwe));
+        adapter.notifyDataSetChanged();
     }
 
     private void onDebtSelected(DebtPerson selectedPerson) {
         if (selectedPerson == null) {
-            btnPay.setVisibility(android.view.View.GONE);
+            btnPay.setVisibility(View.GONE);
         } else {
-            btnPay.setVisibility(android.view.View.VISIBLE);
+            btnPay.setVisibility(View.VISIBLE);
         }
     }
 
@@ -111,16 +184,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
             this.amount = amount;
         }
 
-        public int getIconResId() {
-            return iconResId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getAmount() {
-            return amount;
-        }
+        public int getIconResId() { return iconResId; }
+        public String getName() { return name; }
+        public String getAmount() { return amount; }
     }
 }

@@ -46,10 +46,10 @@ public class GroupController {
         return storage.getGroupsByUser(principal.getName());
     }
 
-//    @GetMapping("/{id}")
-//    public Group getGroup(@PathVariable int id) {
-//        return storage.getGroupById(id);
-//    }
+    @GetMapping("/{id}")
+    public Group getGroup(@PathVariable int id) {
+        return storage.getGroupById(id);
+    }
 
     @PostMapping("/{id}/members")
     public Group addMember(@PathVariable int id, @RequestBody AddMemberRequest req) {

@@ -2,7 +2,6 @@ package com.example.cheqmate.network;
 
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
-import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
@@ -10,12 +9,14 @@ import com.example.cheqmate.dto.LoginResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 
 import java.util.List;
+import java.util.Map; // ДОБАВЛЕНО для работы с долгами
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface ApiService {
     @POST("/api/auth/login")
@@ -31,7 +32,7 @@ public interface ApiService {
     Call<List<GroupResponse>> getMyGroups(@Header("Authorization") String token);
 
     @GET("/api/users/me/debts")
-    Call<DebtResponse> getMyDebts(@Header("Authorization") String token);
+    Call<Map<String, List<Map<String, Object>>>> getMyDebts(@Header("Authorization") String token);
 
     @POST("/api/cheques")
     Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);
@@ -41,4 +42,7 @@ public interface ApiService {
 
     @POST("/api/game-sessions")
     Call<Long> createGameSession(@Header("Authorization") String token, @Body CreateGameSessionRequest request);
+
+    @GET("/api/groups/{id}")
+    Call<com.google.gson.JsonObject> getGroupFullInfo(@Header("Authorization") String token, @Path("id") int groupId);
 }
