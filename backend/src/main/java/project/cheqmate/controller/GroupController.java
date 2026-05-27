@@ -3,10 +3,7 @@ package project.cheqmate.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import project.cheqmate.dto.AddMemberRequest;
-import project.cheqmate.dto.CreateGroupRequest;
-import project.cheqmate.dto.RenameRequest;
-import project.cheqmate.dto.GroupSummaryResponse;
+import project.cheqmate.dto.*;
 import project.cheqmate.model.Group;
 import project.cheqmate.service.StorageService;
 
@@ -67,5 +64,10 @@ public class GroupController {
     @DeleteMapping("/{id}")
     public void deleteGroup(@PathVariable int id) {
         storage.deleteGroup(id);
+    }
+
+    @GetMapping("/{id}/cheques")
+    public List<ChequeResponse> getGroupCheques(@PathVariable int id) {
+        return storage.getChequesByGroupId(id);
     }
 }

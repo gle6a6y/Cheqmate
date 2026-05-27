@@ -9,7 +9,6 @@ import project.cheqmate.model.Cheque;
 import project.cheqmate.service.ChequeRecognizeService;
 import project.cheqmate.service.StorageService;
 
-
 @RestController
 @RequestMapping("/api/cheques")
 public class ChequeController {
@@ -24,22 +23,27 @@ public class ChequeController {
 
     @PostMapping
     public Cheque createCheque(@RequestBody CreateChequeRequest req) {
-        // System.out.println(req.getTotal());
         return storage.createCheque(
-                req.getGroupName(), req.getChequeName(), req.getTotal(),
-                req.getOwnerName(), req.getWhoPaidName(), req.getProportions(),
-                req.getItems());
+                req.getGroupName(),
+                req.getChequeName(),
+                req.getOwnerName(),
+                req.getWhoPaidName(),
+                null,
+                req.getItems()
+        );
     }
-
-
 
     @PostMapping("/fortune-wheel")
     public Cheque playFortuneWheel(@RequestBody FortuneWheelRequest req) {
         return storage.playFortuneWheel(
-                req.getGroupName(), req.getChequeName(), req.getTotal(), req.getOwnerName());
+                req.getGroupName(),
+                req.getChequeName(),
+                req.getTotal(),
+                req.getOwnerName()
+        );
     }
 
-    @PostMapping({"/recognize"})
+    @PostMapping("/recognize")
     public ResponseEntity<String> recognizeCheque(@RequestBody RecognizeChequeRequest req) {
         String chequeJson = recognizeService.callProverkaCheka(req.getQr());
         return ResponseEntity.ok(chequeJson);

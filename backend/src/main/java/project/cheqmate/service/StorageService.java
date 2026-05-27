@@ -1,6 +1,7 @@
 package project.cheqmate.service;
 
 import project.cheqmate.dto.ChequeItemRequest;
+import project.cheqmate.dto.ChequeResponse;
 import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 
@@ -37,13 +38,8 @@ public interface StorageService {
 
     Group addUserToGroupByName(String groupName, String userName);
 
-    Cheque createCheque(String groupName, String chequeName, double total,
-                        String ownerName, String whoPaidName);
 
-    Cheque createCheque(String groupName, String chequeName, double total,
-                        String ownerName, String whoPaidName, Map<String, Double> proportions);
-
-    Cheque createCheque(String groupName, String chequeName, double total,
+    Cheque createCheque(String groupName, String chequeName,
                         String ownerName, String whoPaidName, Map<String, Double> proportions,
                         List<ChequeItemRequest> items);
 
@@ -56,4 +52,6 @@ public interface StorageService {
     Map<String, List<Map<String, Object>>> getDebtsByUsername(String username);
 
     List<Debt> getAllDebts();
+
+    List<ChequeResponse> getChequesByGroupId(int groupId);
 }

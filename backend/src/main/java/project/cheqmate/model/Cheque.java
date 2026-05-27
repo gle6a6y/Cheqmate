@@ -1,6 +1,5 @@
 package project.cheqmate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,25 +41,51 @@ public class Cheque {
     @ElementCollection
     @CollectionTable(name = "cheque_proportions", joinColumns = @JoinColumn(name = "cheque_id"))
     @MapKeyColumn(name = "user_id")
-    @Column(name = "percent")
+    @Column(name = "amount")
     private Map<Integer, Double> proportions = new HashMap<>();
 
     @OneToMany(mappedBy = "cheque", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChequeItem> items = new ArrayList<>();
 
-    public Cheque(String name, double total, User owner, User whoPaid) {
+    public Cheque(String name, User owner, User whoPaid) {
         this.name = name;
-        this.total = total;
         this.owner = owner;
         this.whoPaid = whoPaid;
+    }
+
+    public void addItem(ChequeItem item) {
+        items.add(item);
+        item.setCheque(this);
+    }
+
+    public void calculateCheque() {
+        this.total = 0.0;
+        this.proportions.clear();
+
+        for (ChequeItem item : items) {
+            double itemTotalCost = item.getPrice() * item.getQuantity();
+            this.total += itemTotalCost;
+
+            List<User> participants = item.getParticipants();
+
+            if (participants == null || participants.isEmpty()) {
+                continue;
+            }
+
+            double costPerParticipant = itemTotalCost / participants.size();
+
+            for (User user : participants) {
+                double currentDebt = proportions.getOrDefault(user.getId(), 0.0);
+                proportions.put(user.getId(), currentDebt + costPerParticipant);
+            }
+        }
     }
 
     public void addUser(int userId, double percent) {
         proportions.put(userId, percent);
     }
 
-    public void addItem(ChequeItem item) {
-        items.add(item);
-        item.setCheque(this);
+    public String getChequeName() {
+        return this.name;
     }
 }
