@@ -49,6 +49,9 @@
         <activity
             android:name=".FortuneWheelActivity"
             android:exported="false" />
+        <activity
+            android:name=".CreateChequeActivity"
+            android:exported="false" />
 
 </application>
 

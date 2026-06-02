@@ -78,6 +78,21 @@
             android:textColor="@color/button_secondary_text"
             app:backgroundTint="@null"
             app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTestDirect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_button_secondary"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="44dp"
+            android:text="Тест (без логина)"
+            android:textAllCaps="false"
+            android:textColor="@color/button_secondary_text"
+            app:backgroundTint="@null"
+            app:cornerRadius="8dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

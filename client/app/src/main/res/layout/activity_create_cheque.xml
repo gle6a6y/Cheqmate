@@ -32,7 +32,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Добавить расход"
+                android:text="Создать чек"
                 android:textColor="@color/black"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -53,101 +53,85 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- Название расхода -->
+                <!-- Название чека -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilExpenseName"
+                    android:id="@+id/tilChequeName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Название"
+                    android:layout_marginBottom="24dp"
+                    android:hint="Название чека"
                     app:errorEnabled="true">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etExpenseName"
+                        android:id="@+id/etChequeName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:maxLines="1" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Сумма -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilAmount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Сумма"
-                    app:errorEnabled="true">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etAmount"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Кто платит -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilPayer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Кто платит"
-                    app:errorEnabled="true">
-
-                    <AutoCompleteTextView
-                        android:id="@+id/actPayer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:completionThreshold="1"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Разделить между -->
+                <!-- Заголовок позиций -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="Разделить между"
+                    android:layout_marginBottom="16dp"
+                    android:text="Позиции в чеке"
                     android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                <ChipGroup
-                    android:id="@+id/cgSplitBetween"
+                <!-- Контейнер для позиций -->
+                <LinearLayout
+                    android:id="@+id/itemsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:chipSpacingHorizontal="8dp" />
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp" />
 
-                <!-- Кнопка добавления участника -->
+                <!-- Кнопка добавления позиции -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddParticipant"
+                    android:id="@+id/btnAddItem"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_button_secondary"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:minHeight="44dp"
-                    android:text="+ Добавить участника"
+                    android:text="+ Добавить позицию"
                     android:textAllCaps="false"
                     android:textColor="@color/black"
+                    app:backgroundTint="@null"
+                    app:cornerRadius="8dp" />
+
+                <!-- Кнопка рулетки -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFortuneWheel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/bg_button_primary"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="44dp"
+                    android:text="Использовать рулетку"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
                     app:backgroundTint="@null"
                     app:cornerRadius="8dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Кнопка добавления -->
+        <!-- Кнопка создания -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddExpense"
+            android:id="@+id/btnCreateCheque"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_button_primary"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minHeight="52dp"
-            android:text="Добавить расход"
+            android:text="Создать чек"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:backgroundTint="@null"

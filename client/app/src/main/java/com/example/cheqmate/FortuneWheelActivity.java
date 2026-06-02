@@ -1,11 +1,10 @@
 package com.example.cheqmate;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,8 +17,6 @@ public class FortuneWheelActivity extends AppCompatActivity {
 
     private ImageView wheelImage;
     private TextView resultText;
-    private EditText etChequeName;
-    private EditText etTotalAmount;
     private Button btnSpin;
     private Button btnBack;
     
@@ -38,8 +35,6 @@ public class FortuneWheelActivity extends AppCompatActivity {
     private void initViews() {
         wheelImage = findViewById(R.id.wheelImage);
         resultText = findViewById(R.id.resultText);
-        etChequeName = findViewById(R.id.etChequeName);
-        etTotalAmount = findViewById(R.id.etTotalAmount);
         btnSpin = findViewById(R.id.btnSpin);
         btnBack = findViewById(R.id.btnBack);
     }
@@ -49,45 +44,17 @@ public class FortuneWheelActivity extends AppCompatActivity {
         
         btnSpin.setOnClickListener(v -> {
             if (isSpinning) return;
-            
-            // Проверка ввода
-            String chequeName = etChequeName.getText().toString().trim();
-            String amountStr = etTotalAmount.getText().toString().trim();
-            
-            if (TextUtils.isEmpty(chequeName)) {
-                etChequeName.setError("Введите название чека");
-                return;
-            }
-            
-            if (TextUtils.isEmpty(amountStr)) {
-                etTotalAmount.setError("Введите сумму");
-                return;
-            }
-            
-            try {
-                double amount = Double.parseDouble(amountStr);
-                if (amount <= 0) {
-                    etTotalAmount.setError("Сумма должна быть больше 0");
-                    return;
-                }
-                
-                // Запуск анимации рулетки
-                spinWheel(chequeName, amount);
-            } catch (NumberFormatException e) {
-                etTotalAmount.setError("Введите корректное число");
-                return;
-            }
+            spinWheel();
         });
     }
 
-    private void spinWheel(String chequeName, double amount) {
+    private void spinWheel() {
         isSpinning = true;
         resultText.setText("Крутим рулетку...");
         
-        // Анимация вращения
         Random random = new Random();
-        int spinDuration = 3000; // 3 секунды
-        float rotateDegrees = 360 * 5 + random.nextInt(360); // 5 полных оборотов + случайный угол
+        int spinDuration = 3000;
+        float rotateDegrees = 360 * 5 + random.nextInt(360);
         
         RotateAnimation rotateAnimation = new RotateAnimation(
                 0, rotateDegrees,
@@ -106,16 +73,19 @@ public class FortuneWheelActivity extends AppCompatActivity {
             
             @Override
             public void onAnimationEnd(Animation animation) {
-                // Определяем победителя
-                String winner = determineWinner();
-                resultText.setText(String.format("Чек \"%s\" на сумму %.2f ₽\nОплачивает: %s", 
-                    chequeName, amount, winner));
+                String loser = determineLoser();
+                resultText.setText(String.format("Плательщик: %s", loser));
+                
+                Intent result = new Intent();
+                result.putExtra("loser", loser);
+                setResult(RESULT_OK, result);
                 
                 Toast.makeText(FortuneWheelActivity.this, 
-                    "Чек добавлен с помощью рулетки", Toast.LENGTH_SHORT).show();
+                    "Выбран плательщик: " + loser, Toast.LENGTH_SHORT).show();
                 
                 isSpinning = false;
                 btnSpin.setEnabled(true);
+                finish();
             }
             
             @Override
@@ -125,7 +95,7 @@ public class FortuneWheelActivity extends AppCompatActivity {
         wheelImage.startAnimation(rotateAnimation);
     }
 
-    private String determineWinner() {
+    private String determineLoser() {
         Random random = new Random();
         return participants[random.nextInt(participants.length)];
     }

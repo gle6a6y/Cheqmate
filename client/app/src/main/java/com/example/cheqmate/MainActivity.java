@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.cheqmate.network.SessionManager;
 import com.google.android.material.button.MaterialButton;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,7 +25,21 @@ public class MainActivity extends AppCompatActivity {
         
         sessionManager = new SessionManager(this);
 
+        MaterialButton btnCreateCheque = findViewById(R.id.btnCreateCheque);
+        MaterialButton btnGroups = findViewById(R.id.btnGroups);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
+
+        btnCreateCheque.setOnClickListener(v -> {
+            android.util.Log.d("MainActivity", "Кнопка 'Создать чек' нажата");
+            Intent intent = new Intent(MainActivity.this, CreateChequeActivity.class);
+            startActivity(intent);
+        });
+                
+        btnGroups.setOnClickListener(v -> {
+            // TODO: Implement groups activity
+            Toast.makeText(MainActivity.this, "Раздел групп в разработке", Toast.LENGTH_SHORT).show();
+        });
+
         btnLogout.setOnClickListener(v -> {
             sessionManager.clearData();
             startActivity(new Intent(MainActivity.this, StartActivity.class));

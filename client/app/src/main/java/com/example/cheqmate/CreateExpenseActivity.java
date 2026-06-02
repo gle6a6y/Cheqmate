@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,8 +22,8 @@ import java.util.List;
 
 public class CreateExpenseActivity extends AppCompatActivity {
 
-    private final List<String> participants = Arrays.asList("Катя", "Иван", "Олег", "Алина");
-
+    private List<String> participants = new ArrayList<>(Arrays.asList("Катя", "Иван", "Олег", "Алина"));
+    private int participantCounter = 5;
     private TextInputLayout tilExpenseName;
     private TextInputLayout tilAmount;
     private TextInputLayout tilPayer;
@@ -54,13 +55,19 @@ public class CreateExpenseActivity extends AppCompatActivity {
     }
 
     private void setupPayerDropdown() {
+        updatePayerDropdown();
+        if (!participants.isEmpty()) {
+            actPayer.setText(participants.get(0), false);
+        }
+    }
+
+    private void updatePayerDropdown() {
         ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
                 participants
         );
         actPayer.setAdapter(payerAdapter);
-        actPayer.setText(participants.get(0), false);
     }
 
     private void setupSplitBetweenChips() {
@@ -78,9 +85,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private void setupActions() {
         ImageButton btnBack = findViewById(R.id.btnBack);
         MaterialButton btnAddExpense = findViewById(R.id.btnAddExpense);
+        MaterialButton btnAddParticipant = findViewById(R.id.btnAddParticipant);
 
         btnBack.setOnClickListener(v -> finish());
         btnAddExpense.setOnClickListener(v -> submitExpense());
+        btnAddParticipant.setOnClickListener(v -> addNewParticipant());
     }
 
     private void submitExpense() {
@@ -132,5 +141,25 @@ public class CreateExpenseActivity extends AppCompatActivity {
             }
         }
         return selected;
+    }
+
+    private void addNewParticipant() {
+        String newParticipantName = "Участник " + participantCounter;
+        participants.add(newParticipantName);
+        participantCounter++;
+        
+        // Добавляем чип в ChipGroup
+        Chip chip = new Chip(this);
+        chip.setText(newParticipantName);
+        chip.setCheckable(true);
+        chip.setChecked(true);
+        chip.setChipBackgroundColorResource(R.color.button_secondary_background);
+        chip.setShapeAppearanceModel(chip.getShapeAppearanceModel().withCornerSize(8f));
+        cgSplitBetween.addView(chip);
+        
+        // Обновляем выпадающий список плательщиков
+        updatePayerDropdown();
+        
+        Toast.makeText(this, "Добавлен участник: " + newParticipantName, Toast.LENGTH_SHORT).show();
     }
 }

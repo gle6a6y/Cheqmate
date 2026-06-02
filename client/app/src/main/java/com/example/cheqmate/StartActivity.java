@@ -16,11 +16,15 @@ public class StartActivity extends AppCompatActivity {
 
         MaterialButton btnCreateAccount = findViewById(R.id.btnCreateAccount);
         MaterialButton btnSignIn = findViewById(R.id.btnSignIn);
+        MaterialButton btnTestDirect = findViewById(R.id.btnTestDirect);
 
         btnCreateAccount.setOnClickListener(v ->
                 startActivity(new Intent(this, SignUpActivity.class)));
 
         btnSignIn.setOnClickListener(v ->
                 startActivity(new Intent(this, LoginActivity.class)));
+        
+        btnTestDirect.setOnClickListener(v ->
+                startActivity(new Intent(this, MainActivity.class)));
     }
 }
