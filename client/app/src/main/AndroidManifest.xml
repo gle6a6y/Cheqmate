@@ -40,6 +40,15 @@
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
+        <activity
+            android:name=".GroupDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreateExpenseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FortuneWheelActivity"
+            android:exported="false" />
 
 </application>
 
