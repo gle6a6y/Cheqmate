@@ -50,6 +50,7 @@ public interface StorageService {
 
     Map<String, List<Map<String, Object>>> getDebts(int userId);
     Map<String, List<Map<String, Object>>> getDebtsByUsername(String username);
+    Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId);
 
     List<Debt> getAllDebts();
 

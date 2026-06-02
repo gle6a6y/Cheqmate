@@ -28,6 +28,14 @@ public class UserController {
         return storage.getDebtsByUsername(principal.getName());
     }
 
+    @GetMapping("/me/groups/{groupId}/debts")
+    public Map<String, List<Map<String, Object>>> getMyDebtsByGroup(
+            Principal principal,
+            @PathVariable int groupId
+    ) {
+        return storage.getDebtsByUsernameAndGroup(principal.getName(), groupId);
+    }
+
 //    @GetMapping("/{id}")
 //    public User getUser(@PathVariable int id) {
 //        return storage.getUserById(id);

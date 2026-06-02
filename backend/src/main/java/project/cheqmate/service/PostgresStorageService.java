@@ -349,6 +349,29 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional(readOnly = true)
+    public Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId) {
+        User user = userRepo.findByName(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        List<Map<String, Object>> debtors = new ArrayList<>();
+        List<Map<String, Object>> creditors = new ArrayList<>();
+
+        for (Debt d : debtRepo.findByGroupId(groupId)) {
+            if (d.getCreditor().getId().equals(user.getId())) {
+                debtors.add(Map.of("name", d.getDebtor().getName(), "amount", d.getAmount()));
+            } else if (d.getDebtor().getId().equals(user.getId())) {
+                creditors.add(Map.of("name", d.getCreditor().getName(), "amount", d.getAmount()));
+            }
+        }
+
+        result.put("debtors", debtors);
+        result.put("creditors", creditors);
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Map<String, List<Map<String, Object>>> getDebts(int userId) {
         User user = userRepo.findById(userId).orElseThrow();
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();

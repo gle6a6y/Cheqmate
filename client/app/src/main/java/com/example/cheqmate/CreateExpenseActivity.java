@@ -243,11 +243,6 @@ public class CreateExpenseActivity extends AppCompatActivity {
             return;
         }
 
-        double total = 0;
-        for (ChequeItemRequest item : itemsList) {
-            total += item.getPrice() * item.getQuantity();
-        }
-
         SessionManager sessionManager = new SessionManager(this);
         String ownerName = sessionManager.fetchUserName();
         if (ownerName == null) {
@@ -258,7 +253,6 @@ public class CreateExpenseActivity extends AppCompatActivity {
         ChequeRequest request = new ChequeRequest(
                 groupName,
                 chequeName,
-                total,
                 ownerName,
                 whoPaid,
                 itemsList

@@ -2,6 +2,7 @@ package com.example.cheqmate.network;
 
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
+import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
@@ -9,7 +10,6 @@ import com.example.cheqmate.dto.LoginResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 
 import java.util.List;
-import java.util.Map; // ДОБАВЛЕНО для работы с долгами
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -32,7 +32,10 @@ public interface ApiService {
     Call<List<GroupResponse>> getMyGroups(@Header("Authorization") String token);
 
     @GET("/api/users/me/debts")
-    Call<Map<String, List<Map<String, Object>>>> getMyDebts(@Header("Authorization") String token);
+    Call<DebtResponse> getMyDebts(@Header("Authorization") String token);
+
+    @GET("/api/users/me/groups/{groupId}/debts")
+    Call<DebtResponse> getMyDebtsByGroup(@Header("Authorization") String token, @Path("groupId") int groupId);
 
     @POST("/api/cheques")
     Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);

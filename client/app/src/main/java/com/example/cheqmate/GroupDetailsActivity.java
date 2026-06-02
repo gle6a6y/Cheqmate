@@ -54,33 +54,31 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
     private void initHeaderAndActions() {
         ImageButton btnBack = findViewById(R.id.btnBack);
-        ImageButton btnAddExpense = findViewById(R.id.btnAddExpense);
+        ImageButton btnAddCheck = findViewById(R.id.btnAddCheck);
         btnPay = findViewById(R.id.btnPay);
 
         btnBack.setOnClickListener(v -> finish());
 
-        btnAddExpense.setOnClickListener(v -> {
-            Intent intent = new Intent(GroupDetailsActivity.this, CreateExpenseActivity.class);
-            intent.putExtra("GROUP_NAME", groupName);
-
-            // Если сервер еще не успел вернуть участников группы, подстрахуемся текущим юзером
-            if (realGroupMembers.isEmpty()) {
-                String currentUser = new SessionManager(this).fetchUserName();
-                if (currentUser != null) realGroupMembers.add(currentUser);
-            }
-
-            // Передаем список РЕАЛЬНЫХ участников в активити создания чека
-            intent.putStringArrayListExtra("MEMBERS", realGroupMembers);
-            startActivity(intent);
-        });
-
-        findViewById(R.id.btnAddCheck).setOnClickListener(v ->
-                Toast.makeText(this, "Скоро будет", Toast.LENGTH_SHORT).show()
-        );
+        btnAddCheck.setOnClickListener(v -> openCreateCheque());
 
         btnPay.setOnClickListener(v ->
                 Toast.makeText(this, "Оплата будет доступна скоро", Toast.LENGTH_SHORT).show()
         );
+    }
+
+    private void openCreateCheque() {
+        Intent intent = new Intent(GroupDetailsActivity.this, CreateExpenseActivity.class);
+        intent.putExtra("GROUP_NAME", groupName);
+
+        if (realGroupMembers.isEmpty()) {
+            String currentUser = new SessionManager(this).fetchUserName();
+            if (currentUser != null) {
+                realGroupMembers.add(currentUser);
+            }
+        }
+
+        intent.putStringArrayListExtra("MEMBERS", realGroupMembers);
+        startActivity(intent);
     }
 
     private void setupDebtsList() {
@@ -98,27 +96,12 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         SessionManager sessionManager = new SessionManager(this);
         String token = "Bearer " + sessionManager.fetchAuthToken();
-        String currentUserName = sessionManager.fetchUserName();
 
-        NetworkClient.getApiService().getMyDebts(token).enqueue(new Callback<Map<String, List<Map<String, Object>>>>() {
-            @Override
-            public void onResponse(Call<Map<String, List<Map<String, Object>>>> call, Response<Map<String, List<Map<String, Object>>>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    parseAndDisplayDebts(response.body());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Map<String, List<Map<String, Object>>>> call, Throwable t) {
-                Toast.makeText(GroupDetailsActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        NetworkClient.getApiService().getMyDebts(token).enqueue(new Callback<DebtResponse>() {
+        NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    parseAndDisplayDebts(response.body(), currentUserName);
+                    parseAndDisplayDebts(response.body());
                 } else {
                     Toast.makeText(GroupDetailsActivity.this, "Ошибка сервера при загрузке долгов", Toast.LENGTH_SHORT).show();
                 }
@@ -131,7 +114,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         });
     }
 
-    private void parseAndDisplayDebts(Map<String, List<Map<String, Object>>> debtsMap) {
+    private void parseAndDisplayDebts(DebtResponse response) {
         TextView tvOwedToYou = findViewById(R.id.tvOwedToYou);
         TextView tvYouOwe = findViewById(R.id.tvYouOwe);
 
@@ -140,21 +123,19 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         debtPeople.clear();
 
-        List<Map<String, Object>> debtors = debtsMap.get("debtors");
-        if (debtors != null) {
-            for (Map<String, Object> d : debtors) {
-                String name = (String) d.get("name");
-                double amount = ((Number) d.get("amount")).doubleValue();
+        if (response.getDebtors() != null) {
+            for (DebtResponse.DebtItem d : response.getDebtors()) {
+                String name = d.getName();
+                double amount = d.getAmount();
                 totalOwedToMe += amount;
                 debtPeople.add(new DebtPerson(R.drawable.ic_home, name, String.format("+%.2f ₽", amount)));
             }
         }
 
-        List<Map<String, Object>> creditors = debtsMap.get("creditors");
-        if (creditors != null) {
-            for (Map<String, Object> c : creditors) {
-                String name = (String) c.get("name");
-                double amount = ((Number) c.get("amount")).doubleValue();
+        if (response.getCreditors() != null) {
+            for (DebtResponse.DebtItem c : response.getCreditors()) {
+                String name = c.getName();
+                double amount = c.getAmount();
                 totalIOwe += amount;
                 debtPeople.add(new DebtPerson(R.drawable.ic_plane, name, String.format("-%.2f ₽", amount)));
             }
