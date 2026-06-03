@@ -1,9 +1,13 @@
 package project.cheqmate.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.cheqmate.dto.ChequeItemRequest;
+import project.cheqmate.dto.ChequeResponse;
+import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 import project.cheqmate.repository.*;
 
@@ -19,17 +23,20 @@ public class PostgresStorageService implements StorageService {
     private final DebtRepository debtRepo;
     private final DebtOptimizationService debtOptimizationService;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
                                   ChequeRepository chequeRepo, DebtRepository debtRepo,
                                   DebtOptimizationService debtOptimizationService,
-                                  PasswordEncoder passwordEncoder) {
+                                  PasswordEncoder passwordEncoder,
+                                  ApplicationEventPublisher eventPublisher) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
         this.debtRepo = debtRepo;
         this.debtOptimizationService = debtOptimizationService;
         this.passwordEncoder = passwordEncoder;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -70,7 +77,7 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
-    public Group createGroupWithMembers(String groupName, List<String> memberNames) {
+    public void createGroupWithMembers(String groupName, List<String> memberNames) {
         Group group = new Group(groupName);
         for (String name : memberNames) {
             User user = getUserByName(name);
@@ -79,13 +86,65 @@ public class PostgresStorageService implements StorageService {
             }
             group.addMember(user);
         }
-        return groupRepo.save(group);
+        groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        for (String name : memberNames) {
+            if (!name.equals(currentPrincipalName)) {
+                eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                        name,
+                        group.getGroupName(),
+                        currentPrincipalName
+                ));
+            }
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Group> getGroups() {
         return groupRepo.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GroupSummaryResponse> getGroupsByUser(String userName) {
+        User user = getUserByName(userName);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + userName);
+        }
+        List<Group> groups = groupRepo.findByMembersContaining(user);
+        List<GroupSummaryResponse> summaries = new ArrayList<>();
+
+        for (Group group : groups) {
+            double income = 0;
+            double expense = 0;
+            List<Debt> debts = debtRepo.findByGroupId(group.getId());
+            for (Debt debt : debts) {
+                if (debt.getCreditor().getId().equals(user.getId())) {
+                    income += debt.getAmount();
+                } else if (debt.getDebtor().getId().equals(user.getId())) {
+                    expense += debt.getAmount();
+                }
+            }
+
+            List<String> participants = new ArrayList<>();
+            for(User u : group.getMembers()) {
+                participants.add(u.getName());
+            }
+
+            summaries.add(new GroupSummaryResponse(
+                    group.getId(),
+                    group.getGroupName(),
+                    group.getMembers().size(),
+                    income,
+                    expense,
+                    participants
+            ));
+        }
+        return summaries;
     }
 
     @Override
@@ -151,17 +210,18 @@ public class PostgresStorageService implements StorageService {
 
         for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
             int userId = entry.getKey();
-            double percent = entry.getValue();
+            double amount = entry.getValue();
 
-            // тот, кто платил, сам себе не должен
             if (userId == whoPaid.getId()) {
                 continue;
             }
 
-            double amount = cheque.getTotal() * percent / 100.0;
             User person = userRepo.findById(userId).orElseThrow();
+            Group group = cheque.getGroup();
 
-            Debt debt = debtRepo.findByCreditorAndDebtor(whoPaid, person).orElseThrow(() -> new NoSuchElementException("Debt not found"));
+            Debt debt = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group)
+                    .orElseThrow(() -> new NoSuchElementException("Debt not found"));
+
             double newAmount = debt.getAmount() - amount;
             if (newAmount <= 1e-6) {
                 debtRepo.delete(debt);
@@ -170,17 +230,11 @@ public class PostgresStorageService implements StorageService {
                 debtRepo.save(debt);
             }
         }
-        chequeRepo.delete(cheque);
-    }
 
-//    @Override
-//    @Transactional
-//    public Group addUserToGroup(int groupId, int userId) {
-//        Group group = groupRepo.findById(groupId).orElseThrow();
-//        User user = userRepo.findById(userId).orElseThrow();
-//        group.addMember(user);
-//        return groupRepo.save(group);
-//    }
+        chequeRepo.delete(cheque);
+
+        debtOptimizationService.optimize(cheque.getGroup());
+    }
 
     @Override
     @Transactional
@@ -188,7 +242,18 @@ public class PostgresStorageService implements StorageService {
         Group group = groupRepo.findById(groupId).orElseThrow();
         User user = userRepo.findByName(userName).orElseThrow();
         group.addMember(user);
-        return groupRepo.save(group);
+        Group savedGroup = groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                user.getName(),
+                group.getGroupName(),
+                currentPrincipalName
+        ));
+
+        return savedGroup;
     }
 
     @Override
@@ -199,45 +264,103 @@ public class PostgresStorageService implements StorageService {
         User user = userRepo.findByName(userName).orElseThrow(() ->
                 new NoSuchElementException("User not found: " + userName));
         group.addMember(user);
-        return groupRepo.save(group);
+        Group savedGroup = groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                user.getName(),
+                group.getGroupName(),
+                currentPrincipalName
+        ));
+
+        return savedGroup;
     }
 
     @Override
     @Transactional
-    public Cheque createCheque(String groupName, String chequeName, double total, String ownerName, String whoPaidName) {
-        Group group = groupRepo.findByGroupName(groupName).orElseThrow();
-        User owner = userRepo.findByName(ownerName).orElseThrow();
-        User whoPaid = userRepo.findByName(whoPaidName).orElseThrow();
-        Cheque cheque = new Cheque(chequeName, total, owner, whoPaid);
-        group.addCheque(cheque);
-        return chequeRepo.save(cheque);
-    }
+    public Cheque createCheque(String groupName, String chequeName,
+                               String ownerName, String whoPaidName, Map<String, Double> proportions,
+                               List<ChequeItemRequest> itemRequests) {
 
-    @Override
-    @Transactional
-    public Cheque createCheque(String groupName, String chequeName, double total,
-                               String ownerName, String whoPaidName, Map<String, Double> proportions) {
+        Group group = groupRepo.findByGroupName(groupName)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupName));
+        User owner = userRepo.findByName(ownerName)
+                .orElseThrow(() -> new NoSuchElementException("Owner not found: " + ownerName));
+        User whoPaid = userRepo.findByName(whoPaidName)
+                .orElseThrow(() -> new NoSuchElementException("WhoPaid not found: " + whoPaidName));
 
-        Group group = groupRepo.findByGroupName(groupName).orElseThrow();
-        User owner = userRepo.findByName(ownerName).orElseThrow();
-        User whoPaid = userRepo.findByName(whoPaidName).orElseThrow();
-        Cheque cheque = new Cheque(chequeName, total, owner, whoPaid);
-        if (proportions == null) {
-            throw new IllegalArgumentException("There aren't proportions");
-        }
-        for(Map.Entry<String, Double> entry : proportions.entrySet()) {
-            String userName = entry.getKey();
-            double amount = entry.getValue();
-            User user = getUserByName(userName);
-            if (user == null) {
-                throw new IllegalArgumentException("User not found: " + userName);
+        Cheque cheque = new Cheque(chequeName, owner, whoPaid);
+
+        if (itemRequests != null && !itemRequests.isEmpty()) {
+            for (ChequeItemRequest itemReq : itemRequests) {
+                ChequeItem item = new ChequeItem(itemReq.getName(), itemReq.getPrice(), itemReq.getQuantity());
+
+                List<String> participants = itemReq.getParticipantNames();
+                if (participants != null && !participants.isEmpty()) {
+                    for (String pName : participants) {
+                        User p = getUserByName(pName);
+                        if (p != null) {
+                            item.getParticipants().add(p);
+                        }
+                    }
+                }
+                cheque.addItem(item);
             }
-            cheque.addUser(user.getId(), amount);
+
+            cheque.calculateCheque();
+
+        } else if (proportions != null && !proportions.isEmpty()) {
+            for (Map.Entry<String, Double> entry : proportions.entrySet()) {
+                User user = getUserByName(entry.getKey());
+                if (user != null) {
+                    cheque.addUser(user.getId(), entry.getValue());
+                }
+            }
+            double calculatedTotal = proportions.values().stream().mapToDouble(Double::doubleValue).sum();
+            cheque.setTotal(calculatedTotal);
+        } else {
+            throw new IllegalArgumentException("No items or proportions provided to calculate debt");
         }
+
         group.addCheque(cheque);
         chequeRepo.save(cheque);
+
         applyCheque(cheque.getId());
+
+        List<String> groupMemberNames = group.getMembers().stream()
+                .map(User::getName)
+                .toList();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.ChequeAddedEvent(
+                groupMemberNames,
+                cheque.getChequeName(),
+                group.getGroupName(),
+                whoPaidName
+        ));
+
         return cheque;
+    }
+
+
+    @Override
+    @Transactional
+    public Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName) {
+        Group group = groupRepo.findByGroupName(groupName)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupName));
+
+        List<User> members = group.getMembers();
+        if (members.isEmpty()) {
+            throw new IllegalStateException("Group has no members");
+        }
+
+        User loser = members.get(new Random().nextInt(members.size()));
+
+        Map<String, Double> proportions = Map.of(loser.getName(), total);
+
+        return createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
+                ownerName, loser.getName(), proportions, null);
     }
 
     @Override
@@ -254,24 +377,60 @@ public class PostgresStorageService implements StorageService {
         Cheque cheque = chequeRepo.findById(chequeId).orElseThrow();
         User whoPaid = cheque.getWhoPaid();
 
+        Group group = cheque.getGroup();
         for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
             int userId = entry.getKey();
-            double percent = entry.getValue();
-            if (userId == whoPaid.getId()) continue;
+            double amount = entry.getValue();
+            if (userId == whoPaid.getId()) {
+                continue;
+            }
+            if (amount <= 1e-6) {
+                continue;
+            }
 
-            double amount = cheque.getTotal() * percent / 100.0;
             User person = userRepo.findById(userId).orElseThrow();
 
-            Optional<Debt> existing = debtRepo.findByCreditorAndDebtor(whoPaid, person);
+            Optional<Debt> existing = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group);
             if (existing.isPresent()) {
                 Debt debt = existing.get();
                 debt.setAmount(debt.getAmount() + amount);
                 debtRepo.save(debt);
             } else {
-                debtRepo.save(new Debt(whoPaid, person, cheque.getGroup(), amount));
+                debtRepo.save(new Debt(whoPaid, person, group, amount));
             }
         }
         debtOptimizationService.optimize(cheque.getGroup());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, List<Map<String, Object>>> getDebtsByUsername(String username) {
+        User user = userRepo.findByName(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+        return getDebts(user.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId) {
+        User user = userRepo.findByName(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        List<Map<String, Object>> debtors = new ArrayList<>();
+        List<Map<String, Object>> creditors = new ArrayList<>();
+
+        for (Debt d : debtRepo.findByGroupId(groupId)) {
+            if (d.getCreditor().getId().equals(user.getId())) {
+                debtors.add(Map.of("name", d.getDebtor().getName(), "amount", d.getAmount()));
+            } else if (d.getDebtor().getId().equals(user.getId())) {
+                creditors.add(Map.of("name", d.getCreditor().getName(), "amount", d.getAmount()));
+            }
+        }
+
+        result.put("debtors", debtors);
+        result.put("creditors", creditors);
+        return result;
     }
 
     @Override
@@ -299,5 +458,29 @@ public class PostgresStorageService implements StorageService {
     @Transactional(readOnly = true)
     public List<Debt> getAllDebts() {
         return debtRepo.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChequeResponse> getChequesByGroupId(int groupId) {
+        Group group = groupRepo.findByIdWithCheques(groupId)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupId));
+
+        List<ChequeResponse> response = new ArrayList<>();
+
+        for (Cheque c : group.getCheques()) {
+            String ownerName = c.getOwner() != null ? c.getOwner().getName() : "";
+            String whoPaidName = c.getWhoPaid() != null ? c.getWhoPaid().getName() : "";
+            response.add(new ChequeResponse(
+                    c.getId(),
+                    c.getChequeName(),
+                    c.getTotal(),
+                    ownerName,
+                    whoPaidName,
+                    null
+            ));
+        }
+
+        return response;
     }
 }

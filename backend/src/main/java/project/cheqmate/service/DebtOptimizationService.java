@@ -3,6 +3,7 @@ package project.cheqmate.service;
 import org.springframework.stereotype.Service;
 import project.cheqmate.model.Debt;
 import project.cheqmate.model.Group;
+import project.cheqmate.model.User;
 import project.cheqmate.repository.DebtRepository;
 import project.cheqmate.repository.UserRepository;
 
@@ -27,12 +28,19 @@ public class DebtOptimizationService {
             userIds.add(debt.getCreditor().getId());
         }
 
+        if(userIds.isEmpty()) return;
+
         if(userIds.size() <= 20) {
-            List<Debt> bestDebts = dfsOptimize(debts, userIds, group);
+            List<User> users = userRepo.findAllById(userIds);
+            Map<Integer, User> userCache = new HashMap<>();
+            for (User u : users) {
+                userCache.put(u.getId(), u);
+            }
+
+            List<Debt> bestDebts = dfsOptimize(debts, userIds, group, userCache);
             debtRepo.deleteAll(debts);
             debtRepo.saveAll(bestDebts);
-        }
-        else {
+        } else {
             greedyOptimize();
         }
     }
@@ -42,10 +50,11 @@ public class DebtOptimizationService {
         List<Debt> bestTransactions;
     }
 
-    private void dfs(int pos, double[] debt, int[] idxToUserIdx, List<Debt> cur, BestResult best, List<Integer> idList, Group group) {
+    private void dfs(int pos, double[] debt, int[] idxToUserIdx, List<Debt> cur,
+                     BestResult best, List<Integer> idList, Group group, Map<Integer, User> userCache) {
         int m = debt.length;
 
-        while (pos < m && debt[pos] == 0) {
+        while (pos < m && Math.abs(debt[pos]) < 1e-6) {
             pos++;
         }
 
@@ -64,7 +73,7 @@ public class DebtOptimizationService {
         double current = debt[pos];
 
         for (int j = pos + 1; j < m; j++) {
-            if (debt[j] == 0) continue;
+            if (Math.abs(debt[j]) < 1e-6) continue;
             if (current * debt[j] > 0) continue;
 
             double x = Math.min(Math.abs(current), Math.abs(debt[j]));
@@ -86,9 +95,11 @@ public class DebtOptimizationService {
             int fromUserId = idList.get(idxToUserIdx[fromIdx]);
             int toUserId = idList.get(idxToUserIdx[toIdx]);
 
-            cur.add(new Debt(userRepo.findById(toUserId).get(), userRepo.findById(fromUserId).get(), group, x));
+            User creditor = userCache.get(toUserId);
+            User debtor = userCache.get(fromUserId);
+            cur.add(new Debt(creditor, debtor, group, x));
 
-            dfs(pos + 1, debt, idxToUserIdx, cur, best, idList, group);
+            dfs(pos, debt, idxToUserIdx, cur, best, idList, group, userCache);
 
             cur.remove(cur.size() - 1);
             debt[pos] -= (fromIdx == pos ? x : -x);
@@ -96,7 +107,7 @@ public class DebtOptimizationService {
         }
     }
 
-    private List<Debt> dfsOptimize(List<Debt> debts, Set<Integer> userIds, Group group) {
+    private List<Debt> dfsOptimize(List<Debt> debts, Set<Integer> userIds, Group group, Map<Integer, User> userCache) {
         List<Integer> idList = new ArrayList<>(userIds);
         Map<Integer, Integer> idToIndex = new HashMap<>();
 
@@ -118,14 +129,14 @@ public class DebtOptimizationService {
 
         List<Integer> idxNonZero = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            if (balance[i] != 0) {
+            if (Math.abs(balance[i]) >= 1e-6) {
                 idxNonZero.add(i);
             }
         }
 
         int m = idxNonZero.size();
         if (m == 0) {
-            // никто никому не должен
+            return new ArrayList<>();
         }
 
         double[] debt = new double[m];
@@ -139,9 +150,9 @@ public class DebtOptimizationService {
 
         BestResult best = new BestResult();
         best.minTransactions = Integer.MAX_VALUE;
-        dfs(0, debt, idxToUserIdx, new ArrayList<>(), best, idList, group);
+        dfs(0, debt, idxToUserIdx, new ArrayList<>(), best, idList, group, userCache);
 
-        return best.bestTransactions;
+        return best.bestTransactions != null ? best.bestTransactions : new ArrayList<>();
     }
 
     private void greedyOptimize() {

@@ -1,31 +1,43 @@
 package com.example.cheqmate;
 
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.cheqmate.adapter.DebtAdapter;
+import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.network.NetworkClient;
+import com.example.cheqmate.network.SessionManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class AnalyticsActivity extends AppCompatActivity {
 
-    private TextView tvProjectName;
-    private TextView tvAnalyticsTitle;
+    private TextView btnGroups;
+    private TextView btnAnalytics;
     private TextView tvOwedToYou, tvOwedToYouLabel;
     private TextView tvYouOwe, tvYouOweLabel;
     private TextView tvMyOperations, tvPeriod;
     private TextView tvPersonalSpent, tvPersonalSpentLabel;
     private TextView tvPaidForOthers, tvPaidForOthersLabel;
     private TextView tvStats;
-    private TextView tvDebtorsTitle, tvGroupsTitle;
+    private TextView tvDebtorsTitle, tvOwedToOthersTitle;
 
     private RecyclerView rvDebtors;
-    private RecyclerView rvGroups;
+    private RecyclerView rvCreditors;
 
-    private DebtorsAdapter debtorsAdapter;
-    private GroupsAdapter groupsAdapter;
+    private DebtAdapter debtorsAdapter;
+    private DebtAdapter creditorsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,17 +50,19 @@ public class AnalyticsActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // Шапка
-        tvProjectName = findViewById(R.id.tvProjectName);
-        tvAnalyticsTitle = findViewById(R.id.tvAnalyticsTitle);
+        btnGroups = findViewById(R.id.btnGroups);
+        btnAnalytics = findViewById(R.id.btnAnalytics);
 
-        // Блок 1
+        btnGroups.setOnClickListener(v -> finish());
+        btnAnalytics.setOnClickListener(v -> {
+            Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show();
+        });
+
         tvOwedToYou = findViewById(R.id.tvOwedToYou);
         tvOwedToYouLabel = findViewById(R.id.tvOwedToYouLabel);
         tvYouOwe = findViewById(R.id.tvYouOwe);
         tvYouOweLabel = findViewById(R.id.tvYouOweLabel);
 
-        // Блок 2: Мои операции
         tvMyOperations = findViewById(R.id.tvMyOperations);
         tvPeriod = findViewById(R.id.tvPeriod);
         tvPersonalSpent = findViewById(R.id.tvPersonalSpent);
@@ -57,56 +71,81 @@ public class AnalyticsActivity extends AppCompatActivity {
         tvPaidForOthersLabel = findViewById(R.id.tvPaidForOthersLabel);
         tvStats = findViewById(R.id.tvStats);
 
-        // Заголовки секций
         tvDebtorsTitle = findViewById(R.id.tvDebtorsTitle);
-        tvGroupsTitle = findViewById(R.id.tvGroupsTitle);
+        tvOwedToOthersTitle = findViewById(R.id.tvOwedToOthersTitle);
 
-        // RecyclerViews
         rvDebtors = findViewById(R.id.rvDebtors);
-        rvGroups = findViewById(R.id.rvGroups);
+        rvCreditors = findViewById(R.id.rvCreditors);
     }
 
     private void setupRecyclerViews() {
-        // Должники - горизонтальный список
-        rvDebtors.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        );
-        debtorsAdapter = new DebtorsAdapter(new ArrayList<>());
+        rvDebtors.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        debtorsAdapter = new DebtAdapter(new ArrayList<>(), false);
         rvDebtors.setAdapter(debtorsAdapter);
 
-        // Группы - горизонтальный список
-        rvGroups.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        );
-        groupsAdapter = new GroupsAdapter(new ArrayList<>());
-        rvGroups.setAdapter(groupsAdapter);
+        rvCreditors.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        creditorsAdapter = new DebtAdapter(new ArrayList<>(), true);
+        rvCreditors.setAdapter(creditorsAdapter);
     }
 
     private void loadData() {
-        // Загрузка данных для блока 1
-        tvOwedToYou.setText("+30$");
-        tvYouOwe.setText("-20$");
+        SessionManager sessionManager = new SessionManager(this);
+        String token = sessionManager.fetchAuthToken();
 
-        // Загрузка данных для блока 2
-        tvPersonalSpent.setText("500$");
-        tvPaidForOthers.setText("300$");
-        tvStats.setText("Ты платил в 62% расходов\nВ 38% платили другие");
+        if (token == null) {
+            Toast.makeText(this, "Ошибка сессии, войдите снова", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Данные для должников
+        NetworkClient.getApiService().getMyDebts("Bearer " + token).enqueue(new Callback<DebtResponse>() {
+            @Override
+            public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    updateUI(response.body());
+                } else {
+                    Log.e("Analytics", "Error response: " + response.code());
+                    Toast.makeText(AnalyticsActivity.this, "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<DebtResponse> call, Throwable t) {
+                Log.e("Analytics", "Network error", t);
+                Toast.makeText(AnalyticsActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Эти блоки пока не имеют API, оставляем нули
+        tvPersonalSpent.setText("0 ₽");
+        tvPaidForOthers.setText("0 ₽");
+        tvStats.setText("Данные о расходах загружаются...");
+    }
+
+    private void updateUI(DebtResponse debts) {
+        double totalOwedToMe = 0;
         List<Debtor> debtorsList = new ArrayList<>();
-        debtorsList.add(new Debtor("Иван Е", "5000 ₽"));
-        debtorsList.add(new Debtor("Алла К", "3000 ₽"));
-        debtorsList.add(new Debtor("Егор И", "500 ₽"));
-        debtorsList.add(new Debtor("Мария С", "1200 ₽"));
+
+        if (debts.getDebtors() != null) {
+            for (DebtResponse.DebtItem item : debts.getDebtors()) {
+                totalOwedToMe += item.getAmount();
+                debtorsList.add(new Debtor(item.getName(), String.format("%.0f ₽", item.getAmount())));
+            }
+        }
         debtorsAdapter.setData(debtorsList);
 
-        // Данные для групп
-        List<Group> groupsList = new ArrayList<>();
-        groupsList.add(new Group(R.drawable.ic_plane, "Поездка", "500 ₽"));
-        groupsList.add(new Group(R.drawable.ic_home, "Жилье", "2500 ₽"));
-        groupsList.add(new Group(R.drawable.ic_tree, "Поход", "6300 ₽"));
-        groupsList.add(new Group(R.drawable.ic_cake, "Кафе", "2500 ₽"));
-        groupsAdapter.setData(groupsList);
+        double totalIOwe = 0;
+        List<Debtor> creditorsList = new ArrayList<>();
+
+        if (debts.getCreditors() != null) {
+            for (DebtResponse.DebtItem item : debts.getCreditors()) {
+                totalIOwe += item.getAmount();
+                creditorsList.add(new Debtor(item.getName(), String.format("%.0f ₽", item.getAmount())));
+            }
+        }
+        creditorsAdapter.setData(creditorsList);
+
+        tvOwedToYou.setText(String.format("+%.0f ₽", totalOwedToMe));
+        tvYouOwe.setText(String.format("-%.0f ₽", totalIOwe));
     }
 
     public static class Debtor {
@@ -118,22 +157,6 @@ public class AnalyticsActivity extends AppCompatActivity {
             this.amount = amount;
         }
 
-        public String getName() { return name; }
-        public String getAmount() { return amount; }
-    }
-
-    public static class Group {
-        private int iconResId;
-        private String name;
-        private String amount;
-
-        public Group(int iconResId, String name, String amount) {
-            this.iconResId = iconResId;
-            this.name = name;
-            this.amount = amount;
-        }
-
-        public int getIconResId() { return iconResId; }
         public String getName() { return name; }
         public String getAmount() { return amount; }
     }

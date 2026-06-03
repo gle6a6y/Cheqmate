@@ -16,9 +16,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.cheqmate.network.ApiService;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.network.ApiService;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 import com.google.android.material.button.MaterialButton;
@@ -41,7 +41,6 @@ public class LoginActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
         
-        // Если токен уже есть, сразу идем в MainActivity
         if (sessionManager.fetchAuthToken() != null) {
             navigateToMain();
         }
@@ -73,6 +72,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<LoginResponse> call, @NonNull Response<LoginResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     sessionManager.saveAuthToken(response.body().getToken(), response.body().getName());
+                    com.example.cheqmate.network.PushTokenManager.syncToken(LoginActivity.this);
                     Toast.makeText(LoginActivity.this, "Успешный вход!", Toast.LENGTH_SHORT).show();
                     navigateToMain();
                 } else {

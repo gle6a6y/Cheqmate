@@ -10,20 +10,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  cheque-api:
-    build:
-      context: ./cheque-python-api
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
       - db
-      - cheque-api
     ports:
       - "8080:8080"
     environment:

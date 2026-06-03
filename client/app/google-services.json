@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1095175597308",
+    "project_id": "cheqmate-614eb",
+    "storage_bucket": "cheqmate-614eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095175597308:android:f14bdbf54a6e6ec6b63b79",
+        "android_client_info": {
+          "package_name": "com.example.cheqmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyAWUCsGU-ljwdCfDSMONwKlz9_sYLj6w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

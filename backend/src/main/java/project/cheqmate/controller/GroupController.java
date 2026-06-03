@@ -1,14 +1,16 @@
 package project.cheqmate.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import project.cheqmate.dto.AddMemberRequest;
-import project.cheqmate.dto.CreateGroupRequest;
-import project.cheqmate.dto.RenameRequest;
+import project.cheqmate.dto.*;
 import project.cheqmate.model.Group;
 import project.cheqmate.service.StorageService;
 
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -21,13 +23,33 @@ public class GroupController {
     }
 
     @PostMapping
-    public Group createGroup(@RequestBody CreateGroupRequest req) {
-        return storage.createGroupWithMembers(req.getGroupName(), req.getMemberNames());
+    public void createGroup(@RequestBody CreateGroupRequest req, Principal principal) {
+        List<String> members = new ArrayList<>(req.getMemberNames());
+        String creatorName = principal.getName();
+        if (!members.contains(creatorName)) {
+            members.add(creatorName);
+        }
+        storage.createGroupWithMembers(req.getGroupName(), members);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNotFound(NoSuchElementException e) {
+        return ResponseEntity.status(404).body(e.getMessage());
     }
 
     @GetMapping
     public List<Group> getGroups() {
         return storage.getGroups();
+    }
+
+    @GetMapping("/my")
+    public List<GroupSummaryResponse> getMyGroups(Principal principal) {
+        return storage.getGroupsByUser(principal.getName());
     }
 
     @GetMapping("/{id}")
@@ -48,5 +70,10 @@ public class GroupController {
     @DeleteMapping("/{id}")
     public void deleteGroup(@PathVariable int id) {
         storage.deleteGroup(id);
+    }
+
+    @GetMapping("/{id}/cheques")
+    public List<ChequeResponse> getGroupCheques(@PathVariable int id) {
+        return storage.getChequesByGroupId(id);
     }
 }

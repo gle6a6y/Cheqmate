@@ -10,33 +10,24 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sign_in"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginBottom="32dp"
-            android:layout_gravity="center_horizontal"/>
+        android:padding="16dp">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilLogin"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/login_hint">
+            android:hint="Логин">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:autofillHints="username" />
+                android:inputType="textEmailAddress"
+                android:autofillHints="emailAddress"
+                tools:ignore="SpeakableTextPresentCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -53,7 +44,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:autofillHints="password" />
+                android:autofillHints="password"
+                tools:ignore="SpeakableTextPresentCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -65,7 +57,7 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minHeight="52dp"
-            android:text="@string/sign_in"
+            android:text="Войти"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:backgroundTint="@null"
@@ -79,7 +71,6 @@
             android:gravity="center"
             android:textColor="@color/black"
             android:textSize="14sp"
-            tools:text="Нет аккаунта? Зарегистрироваться" />
-
+            android:text="Нет аккаунта? Зарегистрироваться" />
     </LinearLayout>
 </ScrollView>
