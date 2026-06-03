@@ -10,6 +10,7 @@ import project.cheqmate.service.StorageService;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -34,6 +35,11 @@ public class GroupController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNotFound(NoSuchElementException e) {
+        return ResponseEntity.status(404).body(e.getMessage());
     }
 
     @GetMapping

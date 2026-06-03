@@ -2,6 +2,9 @@ package com.example.cheqmate.dto;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -22,4 +25,7 @@ public class GroupResponse {
 
     @SerializedName("expense")
     private double expense;
+
+    @SerializedName("participants")
+    private ArrayList<String> participants;
 }

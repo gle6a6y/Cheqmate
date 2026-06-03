@@ -89,8 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, GroupDetailsActivity.class);
                 intent.putExtra("GROUP_ID", group.getId());
                 intent.putExtra("GROUP_NAME", group.getName());
-                // В реальном приложении здесь нужно передавать список участников
-                // Например: intent.putStringArrayListExtra("MEMBERS", group.getMemberNames());
+                intent.putStringArrayListExtra("MEMBERS", group.getParticipants());
                 startActivity(intent);
                 break;
             }

@@ -49,10 +49,11 @@ public class GroupsViewModel extends AndroidViewModel {
                             .map(dto -> new Group(
                                     dto.getId(),
                                     dto.getName(),
-                                    "Сегодня", // хз для чего lastActivity, поэтому пока так
+                                    "Сегодня", // для чего то lastActivity надо было, но я забыл. пусть останется
                                     dto.getParticipantsCount(),
                                     dto.getIncome(),
                                     dto.getExpense(),
+                                    dto.getParticipants(),
                                     generateIcon(dto.getName())
                             ))
                             .collect(Collectors.toList());

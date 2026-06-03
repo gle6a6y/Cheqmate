@@ -3,6 +3,8 @@ package com.example.cheqmate;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+
+import java.io.IOException;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -12,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cheqmate.adapter.GroupChequesAdapter;
 import com.example.cheqmate.adapter.YourDebtsAdapter;
+import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
@@ -34,10 +38,12 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private String groupName;
     private int groupId;
 
-    // Переменные для хранения реальных данных
-    private final ArrayList<String> realGroupMembers = new ArrayList<>();
+    private ArrayList<String> realGroupMembers = new ArrayList<>();
     private final List<DebtPerson> debtPeople = new ArrayList<>();
+    private final List<ChequeResponse> groupCheques = new ArrayList<>();
     private YourDebtsAdapter adapter;
+    private GroupChequesAdapter chequesAdapter;
+    private TextView tvChequesEmpty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +52,22 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         groupName = getIntent().getStringExtra("GROUP_NAME");
         groupId = getIntent().getIntExtra("GROUP_ID", -1);
+        realGroupMembers = getIntent().getStringArrayListExtra("MEMBERS");
+
+        for(String u : realGroupMembers) {
+            Log.d("MEMBERS", u);
+        }
 
         initHeaderAndActions();
+        setupChequesList();
         setupDebtsList();
-        loadData(); // Переписанный метод загрузки
+        loadData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadCheques();
     }
 
     private void initHeaderAndActions() {
@@ -81,6 +99,14 @@ public class GroupDetailsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void setupChequesList() {
+        RecyclerView rvCheques = findViewById(R.id.rvCheques);
+        tvChequesEmpty = findViewById(R.id.tvChequesEmpty);
+        rvCheques.setLayoutManager(new LinearLayoutManager(this));
+        chequesAdapter = new GroupChequesAdapter(groupCheques);
+        rvCheques.setAdapter(chequesAdapter);
+    }
+
     private void setupDebtsList() {
         RecyclerView rvYourDebts = findViewById(R.id.rvYourDebts);
         rvYourDebts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -97,6 +123,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
         SessionManager sessionManager = new SessionManager(this);
         String token = "Bearer " + sessionManager.fetchAuthToken();
 
+        loadCheques();
+
         NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
@@ -112,6 +140,62 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 Toast.makeText(GroupDetailsActivity.this, "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void loadCheques() {
+        if (groupId < 0) {
+            Toast.makeText(this, "Нет id группы — откройте группу с главного экрана", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String authToken = new SessionManager(this).fetchAuthToken();
+        if (authToken == null) {
+            Toast.makeText(this, "Войдите снова", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String token = "Bearer " + authToken;
+        NetworkClient.getApiService().getGroupCheques(token, groupId).enqueue(new Callback<List<ChequeResponse>>() {
+            @Override
+            public void onResponse(Call<List<ChequeResponse>> call, Response<List<ChequeResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    displayCheques(response.body());
+                } else {
+                    String details = readErrorBody(response);
+                    Log.e("CHEQUES", "HTTP " + response.code() + " " + details);
+                    Toast.makeText(GroupDetailsActivity.this,
+                            "Не удалось загрузить чеки (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ChequeResponse>> call, Throwable t) {
+                Toast.makeText(GroupDetailsActivity.this,
+                        "Ошибка сети при загрузке чеков", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private static String readErrorBody(Response<?> response) {
+        if (response.errorBody() == null) {
+            return "";
+        }
+        try {
+            return response.errorBody().string();
+        } catch (IOException e) {
+            return e.getMessage();
+        }
+    }
+
+    private void displayCheques(List<ChequeResponse> cheques) {
+        groupCheques.clear();
+        if (cheques != null) {
+            groupCheques.addAll(cheques);
+        }
+        chequesAdapter.notifyDataSetChanged();
+
+        boolean empty = groupCheques.isEmpty();
+        tvChequesEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
     }
 
     private void parseAndDisplayDebts(DebtResponse response) {

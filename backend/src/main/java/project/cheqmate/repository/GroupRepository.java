@@ -1,6 +1,8 @@
 package project.cheqmate.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import project.cheqmate.model.Group;
 import project.cheqmate.model.User;
 
@@ -11,4 +13,6 @@ public interface GroupRepository extends JpaRepository<Group, Integer> {
     Optional<Group> findByGroupName(String groupName);
     List<Group> findByMembersContaining(User member);
 
+    @Query("SELECT DISTINCT g FROM Group g LEFT JOIN FETCH g.cheques WHERE g.id = :id")
+    Optional<Group> findByIdWithCheques(@Param("id") int id);
 }

@@ -112,12 +112,19 @@ public class PostgresStorageService implements StorageService {
                     expense += debt.getAmount();
                 }
             }
+
+            List<String> participants = new ArrayList<>();
+            for(User u : group.getMembers()) {
+                participants.add(u.getName());
+            }
+
             summaries.add(new GroupSummaryResponse(
                     group.getId(),
                     group.getGroupName(),
                     group.getMembers().size(),
                     income,
-                    expense
+                    expense,
+                    participants
             ));
         }
         return summaries;
@@ -193,8 +200,9 @@ public class PostgresStorageService implements StorageService {
             }
 
             User person = userRepo.findById(userId).orElseThrow();
+            Group group = cheque.getGroup();
 
-            Debt debt = debtRepo.findByCreditorAndDebtor(whoPaid, person)
+            Debt debt = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group)
                     .orElseThrow(() -> new NoSuchElementException("Debt not found"));
 
             double newAmount = debt.getAmount() - amount;
@@ -319,21 +327,26 @@ public class PostgresStorageService implements StorageService {
         Cheque cheque = chequeRepo.findById(chequeId).orElseThrow();
         User whoPaid = cheque.getWhoPaid();
 
+        Group group = cheque.getGroup();
         for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
             int userId = entry.getKey();
-            double percent = entry.getValue();
-            if (userId == whoPaid.getId()) continue;
+            double amount = entry.getValue();
+            if (userId == whoPaid.getId()) {
+                continue;
+            }
+            if (amount <= 1e-6) {
+                continue;
+            }
 
-            double amount = cheque.getTotal() * percent / 100.0;
             User person = userRepo.findById(userId).orElseThrow();
 
-            Optional<Debt> existing = debtRepo.findByCreditorAndDebtor(whoPaid, person);
+            Optional<Debt> existing = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group);
             if (existing.isPresent()) {
                 Debt debt = existing.get();
                 debt.setAmount(debt.getAmount() + amount);
                 debtRepo.save(debt);
             } else {
-                debtRepo.save(new Debt(whoPaid, person, cheque.getGroup(), amount));
+                debtRepo.save(new Debt(whoPaid, person, group, amount));
             }
         }
         debtOptimizationService.optimize(cheque.getGroup());
@@ -400,19 +413,21 @@ public class PostgresStorageService implements StorageService {
     @Override
     @Transactional(readOnly = true)
     public List<ChequeResponse> getChequesByGroupId(int groupId) {
-        Group group = groupRepo.findById(groupId)
+        Group group = groupRepo.findByIdWithCheques(groupId)
                 .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupId));
 
         List<ChequeResponse> response = new ArrayList<>();
 
         for (Cheque c : group.getCheques()) {
+            String ownerName = c.getOwner() != null ? c.getOwner().getName() : "";
+            String whoPaidName = c.getWhoPaid() != null ? c.getWhoPaid().getName() : "";
             response.add(new ChequeResponse(
                     c.getId(),
                     c.getChequeName(),
                     c.getTotal(),
-                    c.getOwner().getName(),
-                    c.getWhoPaid().getName(),
-                    c.getProportions()
+                    ownerName,
+                    whoPaidName,
+                    null
             ));
         }
 

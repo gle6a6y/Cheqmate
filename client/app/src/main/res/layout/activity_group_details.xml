@@ -149,21 +149,22 @@
                         android:src="@android:drawable/ic_input_add" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Чек #1024"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
-
-                <TextView
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCheques"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="2 450 ₽ • 14.04.2026"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tvChequesEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Пока нет чеков"
                     android:textColor="#666666"
-                    android:textSize="12sp" />
+                    android:textSize="14sp"
+                    android:visibility="gone" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

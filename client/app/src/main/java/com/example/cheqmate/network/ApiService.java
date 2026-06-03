@@ -1,7 +1,9 @@
 package com.example.cheqmate.network;
 
 import com.example.cheqmate.dto.ChequeRequest;
+import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
+import com.example.cheqmate.dto.GameSessionResponse;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
@@ -46,6 +48,12 @@ public interface ApiService {
     @POST("/api/game-sessions")
     Call<Long> createGameSession(@Header("Authorization") String token, @Body CreateGameSessionRequest request);
 
+    @GET("/api/game-sessions/{id}")
+    Call<GameSessionResponse> getGameSession(@Path("id") long sessionId);
+
     @GET("/api/groups/{id}")
     Call<com.google.gson.JsonObject> getGroupFullInfo(@Header("Authorization") String token, @Path("id") int groupId);
+
+    @GET("/api/groups/{id}/cheques")
+    Call<List<ChequeResponse>> getGroupCheques(@Header("Authorization") String token, @Path("id") int groupId);
 }

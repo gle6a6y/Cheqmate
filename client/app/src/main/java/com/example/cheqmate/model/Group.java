@@ -1,5 +1,8 @@
 package com.example.cheqmate.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Group { // содержит те данные которые отобр на экране
     private final int id;
     private final String name;
@@ -7,16 +10,19 @@ public class Group { // содержит те данные которые ото
     private final int participantsCount;
     private final double income;
     private final double expense;
+
+    private ArrayList<String> participants;
     private final String icon;
 
     public Group(int id, String name, String lastActivityDate, int participantsCount,
-                 double income, double expense, String icon) {
+                 double income, double expense, ArrayList<String> participants, String icon) {
         this.id = id;
         this.name = name;
         this.lastActivityDate = lastActivityDate;
         this.participantsCount = participantsCount;
         this.income = income;
         this.expense = expense;
+        this.participants = participants;
         this.icon = icon;
     }
 
@@ -26,5 +32,8 @@ public class Group { // содержит те данные которые ото
     public int getParticipantsCount() { return participantsCount; }
     public double getIncome() { return income; }
     public double getExpense() { return expense; }
+    public ArrayList<String> getParticipants() {
+        return participants;
+    }
     public String getIcon() { return icon; }
 }

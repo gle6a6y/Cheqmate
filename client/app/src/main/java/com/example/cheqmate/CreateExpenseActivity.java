@@ -1,6 +1,8 @@
 package com.example.cheqmate;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -17,6 +19,7 @@ import com.example.cheqmate.adapter.ChequeItemsAdapter;
 import com.example.cheqmate.dto.ChequeItemRequest;
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
+import com.example.cheqmate.dto.GameSessionResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
@@ -53,6 +56,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private String groupName;
     private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
 
+    private final Handler sessionPollHandler = new Handler(Looper.getMainLooper());
+    private Runnable sessionPollRunnable;
+    private Long pollingSessionId;
+    private boolean loserResolved;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,10 +72,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
         if (groupName == null) groupName = "Общая";
         if (members != null) {
             participants.addAll(members);
-        } else {
-            participants.add("ivan");
         }
+        for (String i : participants) {
+            Log.d("MEMBERS", i);
 
+        }
         qrScannerLauncher = registerForActivityResult(
                 new ScanContract(),
                 result -> {
@@ -86,6 +95,12 @@ public class CreateExpenseActivity extends AppCompatActivity {
         setupActions();
 
         addNewPosition();
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopSessionPolling();
+        super.onDestroy();
     }
 
     private void initViews() {
@@ -140,8 +155,8 @@ public class CreateExpenseActivity extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             long sessionId = response.body();
                             tvGameInfo.setVisibility(TextView.VISIBLE);
-                            tvGameInfo.setText("Сессия №" + sessionId + ". Подключение по ssh: ...");
-                            // Toast.makeText(CreateExpenseActivity.this, "Сессия: " + sessionId, Toast.LENGTH_LONG).show();
+                            tvGameInfo.setText("Сессия №" + sessionId + "\nОжидаем игру в терминале...");
+                            startSessionPolling(sessionId);
                         } else {
                             Toast.makeText(CreateExpenseActivity.this,
                                     "Ошибка сервера: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -154,6 +169,80 @@ public class CreateExpenseActivity extends AppCompatActivity {
                                 "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void startSessionPolling(long sessionId) {
+        stopSessionPolling();
+        pollingSessionId = sessionId;
+        loserResolved = false;
+        sessionPollRunnable = () -> {
+            if (pollingSessionId == null || loserResolved) {
+                return;
+            }
+            pollGameSession(pollingSessionId);
+        };
+        pollGameSession(sessionId);
+    }
+
+    private void pollGameSession(long sessionId) {
+        NetworkClient.getApiService().getGameSession(sessionId).enqueue(new Callback<GameSessionResponse>() {
+            @Override
+            public void onResponse(Call<GameSessionResponse> call, Response<GameSessionResponse> response) {
+                if (pollingSessionId == null || pollingSessionId != sessionId) {
+                    return;
+                }
+                if (response.isSuccessful() && response.body() != null) {
+                    GameSessionResponse session = response.body();
+                    updateGameInfoWhilePolling(sessionId, session);
+                    String loser = session.getLoser();
+                    if (!TextUtils.isEmpty(loser)) {
+                        applyLoserToCheque(loser);
+                        loserResolved = true;
+                        stopSessionPolling();
+                        return;
+                    }
+                }
+                scheduleNextSessionPoll();
+            }
+
+            @Override
+            public void onFailure(Call<GameSessionResponse> call, Throwable t) {
+                if (pollingSessionId != null) {
+                    scheduleNextSessionPoll();
+                }
+            }
+        });
+    }
+
+    private void scheduleNextSessionPoll() {
+        if (pollingSessionId == null || loserResolved || sessionPollRunnable == null) {
+            return;
+        }
+        sessionPollHandler.postDelayed(sessionPollRunnable, 1000);
+    }
+
+    private void stopSessionPolling() {
+        pollingSessionId = null;
+        sessionPollHandler.removeCallbacksAndMessages(null);
+        sessionPollRunnable = null;
+    }
+
+    private void updateGameInfoWhilePolling(long sessionId, GameSessionResponse session) {
+        tvGameInfo.setText("Сессия №" + sessionId + "\n. Введите в терминале: ssh cheqmate@localhost"
+                + "\nГолосов за игру: " + session.getReady()
+                + "\nЖдём, кто проиграет...");
+    }
+
+    private void applyLoserToCheque(String loser) {
+        actPayer.setText(loser, false);
+        List<String> loserOnly = new ArrayList<>(Collections.singletonList(loser));
+        for (ChequeItemRequest item : itemsList) {
+            item.setParticipantNames(new ArrayList<>(loserOnly));
+        }
+        adapter.notifyDataSetChanged();
+
+        tvGameInfo.setText("Проиграл: " + loser + "\nОн платит за всех — поля заполнены");
+        Toast.makeText(this, loser + " платит за всех", Toast.LENGTH_LONG).show();
     }
 
     private void launchQrScanner() {

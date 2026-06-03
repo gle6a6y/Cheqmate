@@ -33,6 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 //.requestMatchers("/api/cheques/recognize").permitAll()
+                .requestMatchers("/api/game-sessions/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
