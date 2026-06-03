@@ -35,11 +35,7 @@ public class GroupChequesAdapter extends RecyclerView.Adapter<GroupChequesAdapte
         ChequeResponse cheque = cheques.get(position);
 
         String title = cheque.getChequeName();
-        if (title == null || title.isEmpty()) {
-            title = "Чек #" + cheque.getId();
-        } else if (cheque.getId() != null) {
-            title = title + "  #" + cheque.getId();
-        }
+        title = "#" + cheque.getId() + " " + title;
         holder.tvChequeTitle.setText(title);
 
         String whoPaid = cheque.getWhoPaidName() != null ? cheque.getWhoPaidName() : "—";
