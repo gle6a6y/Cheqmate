@@ -10,12 +10,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.DebtAdapter;
-import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -97,9 +97,9 @@ public class AnalyticsActivity extends AppCompatActivity {
             return;
         }
 
-        NetworkClient.getApiService().getMyDebts("Bearer " + token).enqueue(new Callback<DebtResponse>() {
+        NetworkClient.getApiService().getMyDebts("Bearer " + token).enqueue(new Callback<Map<String, List<Map<String, Object>>>>() {
             @Override
-            public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
+            public void onResponse(Call<Map<String, List<Map<String, Object>>>> call, Response<Map<String, List<Map<String, Object>>>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     updateUI(response.body());
                 } else {
@@ -109,7 +109,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<DebtResponse> call, Throwable t) {
+            public void onFailure(Call<Map<String, List<Map<String, Object>>>> call, Throwable t) {
                 Log.e("Analytics", "Network error", t);
                 Toast.makeText(AnalyticsActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show();
             }
@@ -121,23 +121,31 @@ public class AnalyticsActivity extends AppCompatActivity {
         tvStats.setText("Данные о расходах загружаются...");
     }
 
-    private void updateUI(DebtResponse response) {
+    private void updateUI(Map<String, List<Map<String, Object>>> debts) {
         double totalOwedToMe = 0;
         List<Debtor> debtorsList = new ArrayList<>();
-        if (response.getDebtors() != null) {
-            for (DebtResponse.DebtItem item : response.getDebtors()) {
-                totalOwedToMe += item.getAmount();
-                debtorsList.add(new Debtor(item.getName(), String.format("%.0f ₽", item.getAmount())));
+        
+        List<Map<String, Object>> debtors = debts.get("debtors");
+        if (debtors != null) {
+            for (Map<String, Object> item : debtors) {
+                String name = (String) item.get("name");
+                double amount = ((Number) item.get("amount")).doubleValue();
+                totalOwedToMe += amount;
+                debtorsList.add(new Debtor(name, String.format("%.0f ₽", amount)));
             }
         }
         debtorsAdapter.setData(debtorsList);
 
         double totalIOwe = 0;
         List<Debtor> creditorsList = new ArrayList<>();
-        if (response.getCreditors() != null) {
-            for (DebtResponse.DebtItem item : response.getCreditors()) {
-                totalIOwe += item.getAmount();
-                creditorsList.add(new Debtor(item.getName(), String.format("%.0f ₽", item.getAmount())));
+        
+        List<Map<String, Object>> creditors = debts.get("creditors");
+        if (creditors != null) {
+            for (Map<String, Object> item : creditors) {
+                String name = (String) item.get("name");
+                double amount = ((Number) item.get("amount")).doubleValue();
+                totalIOwe += amount;
+                creditorsList.add(new Debtor(name, String.format("%.0f ₽", amount)));
             }
         }
         creditorsAdapter.setData(creditorsList);

@@ -9,16 +9,21 @@ import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.dto.NotificationResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
+import com.example.cheqmate.dto.RegisterDeviceRequest;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("/api/auth/login")
@@ -56,4 +61,19 @@ public interface ApiService {
 
     @GET("/api/groups/{id}/cheques")
     Call<List<ChequeResponse>> getGroupCheques(@Header("Authorization") String token, @Path("id") int groupId);
+
+    @POST("/api/notifications/devices")
+    Call<Void> registerDevice(@Header("Authorization") String token, @Body RegisterDeviceRequest request);
+
+    @DELETE("/api/notifications/devices")
+    Call<Void> unregisterDevice(@Header("Authorization") String token, @Query("token") String deviceToken);
+
+    @GET("/api/notifications")
+    Call<List<NotificationResponse>> getNotifications(@Header("Authorization") String token);
+
+    @GET("/api/notifications/unread-count")
+    Call<Map<String, Long>> getUnreadCount(@Header("Authorization") String token);
+
+    @POST("/api/notifications/{id}/read")
+    Call<Void> markNotificationRead(@Header("Authorization") String token, @Path("id") int id);
 }

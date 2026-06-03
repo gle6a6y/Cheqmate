@@ -1,5 +1,6 @@
 package project.cheqmate.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,17 +23,20 @@ public class PostgresStorageService implements StorageService {
     private final DebtRepository debtRepo;
     private final DebtOptimizationService debtOptimizationService;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
                                   ChequeRepository chequeRepo, DebtRepository debtRepo,
                                   DebtOptimizationService debtOptimizationService,
-                                  PasswordEncoder passwordEncoder) {
+                                  PasswordEncoder passwordEncoder,
+                                  ApplicationEventPublisher eventPublisher) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
         this.debtRepo = debtRepo;
         this.debtOptimizationService = debtOptimizationService;
         this.passwordEncoder = passwordEncoder;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -83,6 +87,19 @@ public class PostgresStorageService implements StorageService {
             group.addMember(user);
         }
         groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        for (String name : memberNames) {
+            if (!name.equals(currentPrincipalName)) {
+                eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                        name,
+                        group.getGroupName(),
+                        currentPrincipalName
+                ));
+            }
+        }
     }
 
     @Override
@@ -225,7 +242,18 @@ public class PostgresStorageService implements StorageService {
         Group group = groupRepo.findById(groupId).orElseThrow();
         User user = userRepo.findByName(userName).orElseThrow();
         group.addMember(user);
-        return groupRepo.save(group);
+        Group savedGroup = groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                user.getName(),
+                group.getGroupName(),
+                currentPrincipalName
+        ));
+
+        return savedGroup;
     }
 
     @Override
@@ -236,7 +264,18 @@ public class PostgresStorageService implements StorageService {
         User user = userRepo.findByName(userName).orElseThrow(() ->
                 new NoSuchElementException("User not found: " + userName));
         group.addMember(user);
-        return groupRepo.save(group);
+        Group savedGroup = groupRepo.save(group);
+
+        String currentPrincipalName = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.UserAddedToGroupEvent(
+                user.getName(),
+                group.getGroupName(),
+                currentPrincipalName
+        ));
+
+        return savedGroup;
     }
 
     @Override
@@ -289,6 +328,17 @@ public class PostgresStorageService implements StorageService {
         chequeRepo.save(cheque);
 
         applyCheque(cheque.getId());
+
+        List<String> groupMemberNames = group.getMembers().stream()
+                .map(User::getName)
+                .toList();
+
+        eventPublisher.publishEvent(new project.cheqmate.event.ChequeAddedEvent(
+                groupMemberNames,
+                cheque.getChequeName(),
+                group.getGroupName(),
+                whoPaidName
+        ));
 
         return cheque;
     }
