@@ -45,6 +45,8 @@ public class GroupChequesAdapter extends RecyclerView.Adapter<GroupChequesAdapte
                 cheque.getTotal(),
                 whoPaid
         ));
+
+        holder.divider.setVisibility(position == cheques.size() - 1 ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -55,11 +57,13 @@ public class GroupChequesAdapter extends RecyclerView.Adapter<GroupChequesAdapte
     static class ViewHolder extends RecyclerView.ViewHolder {
         final TextView tvChequeTitle;
         final TextView tvChequeSubtitle;
+        final View divider;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvChequeTitle = itemView.findViewById(R.id.tvChequeTitle);
             tvChequeSubtitle = itemView.findViewById(R.id.tvChequeSubtitle);
+            divider = itemView.findViewById(R.id.chequeDivider);
         }
     }
 }

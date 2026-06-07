@@ -13,4 +13,16 @@
 
     <color name="money_black">#FF000000</color>    <!-- черный когда должен -->
     <color name="money_gray">#BDBDBD</color>       <!-- серый когда не должен -->
+    <color name="money_positive">#2E7D32</color>   <!-- зелёный — вам должны -->
+    <color name="text_secondary">#666666</color>
+    <color name="divider_light">#EEEEEE</color>
+    <color name="logout_red">#C62828</color>
+
+    <!-- Material3 — чёрная палитра вместо фиолетовой по умолчанию -->
+    <color name="md_primary">#000000</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#F0F0F0</color>
+    <color name="md_on_primary_container">#000000</color>
+    <color name="md_secondary">#000000</color>
+    <color name="md_on_secondary">#FFFFFF</color>
 </resources>

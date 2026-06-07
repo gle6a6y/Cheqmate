@@ -44,6 +44,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private YourDebtsAdapter adapter;
     private GroupChequesAdapter chequesAdapter;
     private TextView tvChequesEmpty;
+    private TextView tvDebtsEmpty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +54,11 @@ public class GroupDetailsActivity extends AppCompatActivity {
         groupName = getIntent().getStringExtra("GROUP_NAME");
         groupId = getIntent().getIntExtra("GROUP_ID", -1);
         realGroupMembers = getIntent().getStringArrayListExtra("MEMBERS");
+        if (realGroupMembers == null) {
+            realGroupMembers = new ArrayList<>();
+        }
 
-        for(String u : realGroupMembers) {
+        for (String u : realGroupMembers) {
             Log.d("MEMBERS", u);
         }
 
@@ -109,6 +113,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
     private void setupDebtsList() {
         RecyclerView rvYourDebts = findViewById(R.id.rvYourDebts);
+        tvDebtsEmpty = findViewById(R.id.tvDebtsEmpty);
         rvYourDebts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
         // Инициализируем адаптер с пустым (пока что) списком debtPeople
@@ -212,7 +217,10 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 String name = d.getName();
                 double amount = d.getAmount();
                 totalOwedToMe += amount;
-                debtPeople.add(new DebtPerson(R.drawable.ic_home, name, String.format("+%.2f ₽", amount)));
+                debtPeople.add(new DebtPerson(
+                        R.drawable.ic_home, name,
+                        String.format("+%.2f ₽", amount),
+                        DebtDirection.OWES_ME));
             }
         }
 
@@ -221,36 +229,63 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 String name = c.getName();
                 double amount = c.getAmount();
                 totalIOwe += amount;
-                debtPeople.add(new DebtPerson(R.drawable.ic_plane, name, String.format("-%.2f ₽", amount)));
+                debtPeople.add(new DebtPerson(
+                        R.drawable.ic_plane, name,
+                        String.format("-%.2f ₽", amount),
+                        DebtDirection.I_OWE));
             }
         }
 
         tvOwedToYou.setText(String.format("%.2f ₽", totalOwedToMe));
         tvYouOwe.setText(String.format("%.2f ₽", totalIOwe));
+
+        tvOwedToYou.setTextColor(getColor(totalOwedToMe > 0
+                ? R.color.money_positive : R.color.money_gray));
+        tvYouOwe.setTextColor(getColor(totalIOwe > 0
+                ? R.color.money_black : R.color.money_gray));
+
         adapter.notifyDataSetChanged();
+        btnPay.setVisibility(View.GONE);
+
+        boolean debtsEmpty = debtPeople.isEmpty();
+        tvDebtsEmpty.setVisibility(debtsEmpty ? View.VISIBLE : View.GONE);
     }
 
     private void onDebtSelected(DebtPerson selectedPerson) {
-        if (selectedPerson == null) {
-            btnPay.setVisibility(View.GONE);
-        } else {
+        if (selectedPerson != null && selectedPerson.canPay()) {
             btnPay.setVisibility(View.VISIBLE);
+        } else {
+            btnPay.setVisibility(View.GONE);
+            if (selectedPerson != null && selectedPerson.owesMe()) {
+                Toast.makeText(this, selectedPerson.getName() + " должен вам — оплата не нужна",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
+    }
+
+    public enum DebtDirection {
+        OWES_ME,
+        I_OWE
     }
 
     public static class DebtPerson {
         private final int iconResId;
         private final String name;
         private final String amount;
+        private final DebtDirection direction;
 
-        public DebtPerson(int iconResId, String name, String amount) {
+        public DebtPerson(int iconResId, String name, String amount, DebtDirection direction) {
             this.iconResId = iconResId;
             this.name = name;
             this.amount = amount;
+            this.direction = direction;
         }
 
         public int getIconResId() { return iconResId; }
         public String getName() { return name; }
         public String getAmount() { return amount; }
+        public DebtDirection getDirection() { return direction; }
+        public boolean owesMe() { return direction == DebtDirection.OWES_ME; }
+        public boolean canPay() { return direction == DebtDirection.I_OWE; }
     }
 }

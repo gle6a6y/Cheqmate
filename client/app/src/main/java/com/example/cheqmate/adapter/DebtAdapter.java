@@ -1,6 +1,5 @@
 package com.example.cheqmate.adapter;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,7 @@ import java.util.List;
 public class DebtAdapter extends RecyclerView.Adapter<DebtAdapter.DebtViewHolder> {
 
     private List<AnalyticsActivity.Debtor> debtList;
-    private boolean isNegative;
+    private final boolean isNegative;
 
     public DebtAdapter(List<AnalyticsActivity.Debtor> debtList, boolean isNegative) {
         this.debtList = debtList;
@@ -43,11 +42,8 @@ public class DebtAdapter extends RecyclerView.Adapter<DebtAdapter.DebtViewHolder
         holder.tvName.setText(debtor.getName());
         holder.tvAmount.setText(debtor.getAmount());
 
-        if (isNegative) {
-            holder.tvAmount.setTextColor(Color.parseColor("#F44336"));
-        } else {
-            holder.tvAmount.setTextColor(Color.parseColor("#4CAF50"));
-        }
+        int colorRes = isNegative ? R.color.money_black : R.color.money_positive;
+        holder.tvAmount.setTextColor(holder.itemView.getContext().getColor(colorRes));
     }
 
     @Override

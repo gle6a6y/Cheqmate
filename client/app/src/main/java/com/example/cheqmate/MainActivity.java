@@ -14,7 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.GroupAdapter;
@@ -49,13 +49,11 @@ public class MainActivity extends AppCompatActivity {
         PushTokenManager.syncToken(this);
 
         recyclerView = findViewById(R.id.recyclerView);
-        ImageView btnHome = findViewById(R.id.btnHome);
         ImageView btnAdd = findViewById(R.id.btnAdd);
         TextView btnGroups = findViewById(R.id.btnGroups);
         TextView btnAnalytics = findViewById(R.id.btnAnalytics);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
-        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         viewModel = new ViewModelProvider(this).get(GroupsViewModel.class);
 
@@ -80,17 +78,12 @@ public class MainActivity extends AppCompatActivity {
         btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, NotificationsActivity.class)));
 
-        btnHome.setOnClickListener(v -> {
-            Toast.makeText(this, "Домой", Toast.LENGTH_SHORT).show();
-        });
-
         btnAdd.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, CreateGroupActivity.class);
             startActivity(intent);
         });
 
-        TextView btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(v -> {
+        findViewById(R.id.btnLogout).setOnClickListener(v -> {
             SessionManager sessionManager = new SessionManager(this);
             PushTokenManager.unregisterCurrentToken(this);
             sseClient.disconnect();
