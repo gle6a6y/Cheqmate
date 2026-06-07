@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {
                 super.updateDrawState(ds);
-                ds.setColor(ContextCompat.getColor(LoginActivity.this, R.color.link_text));
+                ds.setColor(ContextCompat.getColor(LoginActivity.this, R.color.black));
                 ds.setUnderlineText(true);
             }
         }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

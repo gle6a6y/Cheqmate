@@ -74,8 +74,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        TextView btnNotifications = findViewById(R.id.btnNotifications);
-        btnNotifications.setOnClickListener(v ->
+        findViewById(R.id.btnNotifications).setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, NotificationsActivity.class)));
 
         btnAdd.setOnClickListener(v -> {

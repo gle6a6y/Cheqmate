@@ -228,7 +228,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     }
 
     private void updateGameInfoWhilePolling(long sessionId, GameSessionResponse session) {
-        tvGameInfo.setText("Сессия №" + sessionId + "\n Введите в терминале: ssh cheqmate@localhost"
+        tvGameInfo.setText("Сессия №" + sessionId + "\nВведите в терминале: ssh cheqmate@localhost"
                 + "\nГолосов за игру: " + session.getReady()
                 + "\nЖдём, кто проиграет...");
     }

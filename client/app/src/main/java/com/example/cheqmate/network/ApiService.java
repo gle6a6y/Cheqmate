@@ -9,6 +9,7 @@ import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.dto.PayDebtRequest;
 import com.example.cheqmate.dto.NotificationResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.dto.RegisterDeviceRequest;
@@ -43,6 +44,12 @@ public interface ApiService {
 
     @GET("/api/users/me/groups/{groupId}/debts")
     Call<DebtResponse> getMyDebtsByGroup(@Header("Authorization") String token, @Path("groupId") int groupId);
+
+    @POST("/api/users/me/groups/{groupId}/debts/pay")
+    Call<DebtResponse> payDebtInGroup(
+            @Header("Authorization") String token,
+            @Path("groupId") int groupId,
+            @Body PayDebtRequest request);
 
     @POST("/api/cheques")
     Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);

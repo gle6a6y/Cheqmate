@@ -20,14 +20,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5">
 
-        <TextView
-            android:id="@+id/tvProjectName"
+        <ImageView
+            android:id="@+id/imgLogoCheqmate"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/project_name_lower"
-            android:textColor="@color/black"
-            android:textSize="32sp"
-            android:textStyle="bold" />
+            android:layout_height="36dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/project_name_lower"
+            android:scaleType="fitCenter"
+            android:src="@drawable/logo_cheqmate"
+            app:tint="@color/black" />
 
         <TextView
             android:id="@+id/tvTagline"
@@ -36,9 +37,8 @@
             android:layout_marginTop="12dp"
             android:gravity="center"
             android:text="@string/start_tagline"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <LinearLayout

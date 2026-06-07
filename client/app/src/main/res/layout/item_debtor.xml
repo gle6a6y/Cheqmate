@@ -9,11 +9,11 @@
     android:paddingHorizontal="12dp"
     android:paddingVertical="16dp">
 
-    <View
+    <ImageView
         android:id="@+id/vAvatar"
         android:layout_width="52dp"
         android:layout_height="52dp"
-        android:background="@drawable/bg_nav_icon" />
+        android:src="@drawable/ic_photo_user" />
 
     <TextView
         android:id="@+id/tvDebtorName"

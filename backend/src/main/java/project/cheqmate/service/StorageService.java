@@ -52,6 +52,9 @@ public interface StorageService {
     Map<String, List<Map<String, Object>>> getDebtsByUsername(String username);
     Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId);
 
+    Map<String, List<Map<String, Object>>> payDebtInGroup(
+            String debtorUsername, int groupId, String creditorUsername, double amount);
+
     List<Debt> getAllDebts();
 
     List<ChequeResponse> getChequesByGroupId(int groupId);

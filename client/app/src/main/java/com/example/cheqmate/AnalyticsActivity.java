@@ -60,8 +60,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         btnAnalytics.setOnClickListener(v ->
                 Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show());
 
-        TextView btnNotifications = findViewById(R.id.btnNotifications);
-        btnNotifications.setOnClickListener(v ->
+        findViewById(R.id.btnNotifications).setOnClickListener(v ->
                 startActivity(new Intent(AnalyticsActivity.this, NotificationsActivity.class)));
 
         tvOwedToYou = findViewById(R.id.tvOwedToYou);

@@ -84,6 +84,14 @@ public class YourDebtsAdapter extends RecyclerView.Adapter<YourDebtsAdapter.Debt
         return debts.size();
     }
 
+    public void clearSelection() {
+        int previousPosition = selectedPosition;
+        selectedPosition = RecyclerView.NO_POSITION;
+        if (previousPosition != RecyclerView.NO_POSITION) {
+            notifyItemChanged(previousPosition);
+        }
+    }
+
     static class DebtViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAvatar;
         TextView tvName;
