@@ -41,12 +41,30 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
         holder.tvTitle.setText(n.getTitle());
         holder.tvBody.setText(n.getBody());
         holder.tvTime.setText(formatTime(n.getCreatedAt()));
+        bindIcon(holder, n.getType());
 
-        holder.viewUnreadDot.setVisibility(n.isRead() ? View.INVISIBLE : View.VISIBLE);
-        holder.itemView.setAlpha(n.isRead() ? 0.6f : 1.0f);
+        boolean unread = !n.isRead();
+        holder.viewUnreadDot.setVisibility(unread ? View.VISIBLE : View.GONE);
+        holder.tvTitle.setTextColor(holder.itemView.getContext().getColor(
+                unread ? R.color.black : R.color.text_secondary));
+        holder.tvBody.setTextColor(holder.itemView.getContext().getColor(
+                unread ? R.color.text_secondary : R.color.money_gray));
 
         holder.itemView.setOnClickListener(v ->
                 listener.onNotificationClicked(n, holder.getBindingAdapterPosition()));
+    }
+
+    private void bindIcon(NotificationViewHolder holder, String type) {
+        if ("CHEQUE_ADDED".equals(type)) {
+            holder.tvIcon.setText("🧾");
+            holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon_cheque);
+        } else if ("GROUP_INVITE".equals(type)) {
+            holder.tvIcon.setText("👥");
+            holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon_group);
+        } else {
+            holder.tvIcon.setText("🔔");
+            holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon);
+        }
     }
 
     @Override
@@ -59,10 +77,14 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
             return "";
         }
         String s = isoCreatedAt.replace('T', ' ');
-        return s.length() >= 16 ? s.substring(0, 16) : s;
+        if (s.length() >= 16) {
+            return s.substring(0, 16);
+        }
+        return s;
     }
 
     static class NotificationViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvIcon;
         final TextView tvTitle;
         final TextView tvBody;
         final TextView tvTime;
@@ -70,6 +92,7 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
 
         NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
+            tvIcon = itemView.findViewById(R.id.tvIcon);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvBody = itemView.findViewById(R.id.tvBody);
             tvTime = itemView.findViewById(R.id.tvTime);

@@ -53,7 +53,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
                 "-%d ₽", (int) group.getExpense()));
 
         if (group.getIncome() > 0) {
-            holder.tvIncome.setTextColor(holder.itemView.getContext().getColor(R.color.money_black));
+            holder.tvIncome.setTextColor(holder.itemView.getContext().getColor(R.color.money_positive));
         } else {
             holder.tvIncome.setTextColor(holder.itemView.getContext().getColor(R.color.money_gray));
         }

@@ -411,6 +411,47 @@ public class PostgresStorageService implements StorageService {
     }
 
     @Override
+    @Transactional
+    public Map<String, List<Map<String, Object>>> payDebtInGroup(
+            String debtorUsername, int groupId, String creditorUsername, double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        if (creditorUsername == null || creditorUsername.isBlank()) {
+            throw new IllegalArgumentException("Creditor username is required");
+        }
+
+        User debtor = userRepo.findByName(debtorUsername)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + debtorUsername));
+        User creditor = userRepo.findByName(creditorUsername)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + creditorUsername));
+        Group group = groupRepo.findById(groupId)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupId));
+
+        if (debtor.getId().equals(creditor.getId())) {
+            throw new IllegalArgumentException("Cannot pay yourself");
+        }
+
+        Debt debt = debtRepo.findByCreditorAndDebtorAndGroup(creditor, debtor, group)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Debt not found for creditor " + creditorUsername + " in group " + groupId));
+
+        if (amount > debt.getAmount() + 1e-6) {
+            throw new IllegalArgumentException("Amount exceeds debt");
+        }
+
+        double newAmount = debt.getAmount() - amount;
+        if (newAmount <= 1e-6) {
+            debtRepo.delete(debt);
+        } else {
+            debt.setAmount(newAmount);
+            debtRepo.save(debt);
+        }
+
+        return getDebtsByUsernameAndGroup(debtorUsername, groupId);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId) {
         User user = userRepo.findByName(username)

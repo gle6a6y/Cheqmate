@@ -1,9 +1,9 @@
 package com.example.cheqmate;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,6 +13,7 @@ import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.network.ApiService;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
@@ -30,7 +31,7 @@ public class CreateGroupActivity extends AppCompatActivity {
     private TextInputEditText etGroupName;
     private TextInputEditText etParticipants;
     private ChipGroup cgParticipants;
-    private Button btnCreateGroup;
+    private MaterialButton btnCreateGroup;
     private SessionManager sessionManager;
 
     @Override
@@ -44,6 +45,8 @@ public class CreateGroupActivity extends AppCompatActivity {
         etParticipants = findViewById(R.id.etParticipants);
         cgParticipants = findViewById(R.id.cgParticipants);
         btnCreateGroup = findViewById(R.id.btnCreateGroup);
+
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         String currentUser = sessionManager.fetchUserName();
         if (currentUser != null) {
@@ -97,8 +100,12 @@ public class CreateGroupActivity extends AppCompatActivity {
         chip.setText(name);
         chip.setCloseIconVisible(true);
         chip.setOnCloseIconClickListener(v -> cgParticipants.removeView(chip));
-        chip.setChipBackgroundColorResource(R.color.button_secondary_background);
-        chip.setShapeAppearanceModel(chip.getShapeAppearanceModel().withCornerSize(8f));
+        chip.setChipBackgroundColor(ColorStateList.valueOf(getColor(R.color.white)));
+        chip.setChipStrokeColor(ColorStateList.valueOf(getColor(R.color.black)));
+        chip.setChipStrokeWidth(getResources().getDisplayMetrics().density);
+        chip.setTextColor(getColor(R.color.black));
+        chip.setCloseIconTint(ColorStateList.valueOf(getColor(R.color.text_secondary)));
+        chip.setShapeAppearanceModel(chip.getShapeAppearanceModel().withCornerSize(20f));
 
         cgParticipants.addView(chip);
     }

@@ -3,50 +3,82 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#C7C5C5"
-    android:padding="16dp">
+    android:background="@color/page_background"
+    android:orientation="vertical">
 
-    <!-- Навигация сверху -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="12dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="cheqmate"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:layout_marginEnd="16dp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/btnGroups"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Группы"
-            android:textSize="14sp"
-            android:textColor="@android:color/black"
-            android:background="@drawable/analytics_button"
-            android:paddingVertical="6dp"
-            android:paddingHorizontal="16dp"
-            android:layout_marginEnd="8dp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/btnAnalytics"
-            android:layout_width="wrap_content"
+                <include layout="@layout/view_logo_cheqmate" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Сводка по долгам"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/btnNotifications"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_chip_inactive"
+                android:contentDescription="@string/notifications"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_notification"
+                app:tint="@color/black" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Аналитика"
-            android:textSize="14sp"
-            android:textColor="@android:color/black"
-            android:background="@drawable/white_oval_button"
-            android:paddingVertical="6dp"
-            android:paddingHorizontal="16dp" />
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnGroups"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="8dp"
+                android:text="Группы"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnAnalytics"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip_active"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="8dp"
+                android:text="Аналитика"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView
@@ -57,108 +89,102 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="28dp">
 
-            <!-- Блок 1: Тебе должны / Ты должен -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:weightSum="2">
+                    android:paddingVertical="22dp">
 
-                    <!-- Левая половина -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="20dp">
+                        android:orientation="vertical">
 
                         <TextView
                             android:id="@+id/tvOwedToYou"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="+30$"
-                            android:textColor="#000000"
-                            android:textSize="28sp"
-                            android:textStyle="bold"/>
+                            android:text="+0 ₽"
+                            android:textColor="@color/money_gray"
+                            android:textSize="26sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvOwedToYouLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="тебе должны"
-                            android:textColor="#666666"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"/>
+                            android:layout_marginTop="6dp"
+                            android:text="Вам должны"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
-                    <!-- Разделитель -->
                     <View
                         android:layout_width="1dp"
                         android:layout_height="match_parent"
-                        android:background="#E0E0E0"/>
+                        android:background="@color/divider_light" />
 
-                    <!-- Правая половина -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="20dp">
+                        android:orientation="vertical">
 
                         <TextView
                             android:id="@+id/tvYouOwe"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-20$"
-                            android:textColor="#000000"
-                            android:textSize="28sp"
-                            android:textStyle="bold"/>
+                            android:text="-0 ₽"
+                            android:textColor="@color/money_gray"
+                            android:textSize="26sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvYouOweLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ты должен"
-                            android:textColor="#666666"
-                            android:textSize="14sp"
-                            android:layout_marginTop="4dp"/>
+                            android:layout_marginTop="6dp"
+                            android:text="Вы должны"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Блок 2: Мои операции -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
-                    <!-- Заголовок блока -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/tvMyOperations"
@@ -166,134 +192,193 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Мои операции"
-                            android:textColor="#000000"
-                            android:textSize="16sp"
-                            android:textStyle="bold"/>
+                            android:textColor="@color/black"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvPeriod"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="За месяц"
-                            android:textColor="#666666"
-                            android:textSize="14sp"/>
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginVertical="12dp"/>
+                        android:layout_marginVertical="14dp"
+                        android:background="@color/divider_light" />
 
-                    <!-- Две половины -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:weightSum="2">
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tvPersonalSpent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="500$"
-                                android:textColor="#000000"
-                                android:textSize="24sp"
-                                android:textStyle="bold"/>
+                                android:text="0 ₽"
+                                android:textColor="@color/black"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/tvPersonalSpentLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
                                 android:text="потратил лично"
-                                android:textColor="#666666"
-                                android:textSize="12sp"
-                                android:layout_marginTop="4dp"/>
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
                         </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginHorizontal="8dp"
+                            android:background="@color/divider_light" />
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="center">
+                            android:gravity="center"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tvPaidForOthers"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="300$"
-                                android:textColor="#000000"
-                                android:textSize="24sp"
-                                android:textStyle="bold"/>
+                                android:text="0 ₽"
+                                android:textColor="@color/black"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/tvPaidForOthersLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
                                 android:text="оплатил за других"
-                                android:textColor="#666666"
-                                android:textSize="12sp"
-                                android:layout_marginTop="4dp"/>
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Статистика -->
                     <TextView
                         android:id="@+id/tvStats"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Ты платил в 62% расходов\nВ 38% платили другие"
-                        android:textColor="#000000"
-                        android:textSize="14sp"
+                        android:layout_marginTop="14dp"
+                        android:background="@drawable/bg_info_banner"
                         android:gravity="center"
-                        android:layout_marginTop="16dp"
-                        android:lineSpacingExtra="4dp"/>
+                        android:lineSpacingExtra="4dp"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp"
+                        android:text="Данные о расходах загружаются..."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Блок 3: Должники -->
-            <TextView
-                android:id="@+id/tvDebtorsTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Должники"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvDebtors"
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:nestedScrollingEnabled="false"/>
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
 
-            <!-- Блок 4: Кому я должен -->
-            <TextView
-                android:id="@+id/tvOwedToOthersTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Я должен"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvCreditors"
+                    <TextView
+                        android:id="@+id/tvDebtorsTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Должники"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvDebtors"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvDebtorsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingVertical="12dp"
+                        android:text="Никто вам не должен"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:nestedScrollingEnabled="false"/>
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:id="@+id/tvOwedToOthersTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Вы должны"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvCreditors"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/tvCreditorsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingVertical="12dp"
+                        android:text="Вы никому не должны"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
     </ScrollView>

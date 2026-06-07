@@ -1,7 +1,9 @@
 package com.example.cheqmate;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +34,7 @@ public class AnalyticsActivity extends AppCompatActivity {
     private TextView tvPaidForOthers, tvPaidForOthersLabel;
     private TextView tvStats;
     private TextView tvDebtorsTitle, tvOwedToOthersTitle;
+    private TextView tvDebtorsEmpty, tvCreditorsEmpty;
 
     private RecyclerView rvDebtors;
     private RecyclerView rvCreditors;
@@ -54,9 +57,11 @@ public class AnalyticsActivity extends AppCompatActivity {
         btnAnalytics = findViewById(R.id.btnAnalytics);
 
         btnGroups.setOnClickListener(v -> finish());
-        btnAnalytics.setOnClickListener(v -> {
-            Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show();
-        });
+        btnAnalytics.setOnClickListener(v ->
+                Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show());
+
+        findViewById(R.id.btnNotifications).setOnClickListener(v ->
+                startActivity(new Intent(AnalyticsActivity.this, NotificationsActivity.class)));
 
         tvOwedToYou = findViewById(R.id.tvOwedToYou);
         tvOwedToYouLabel = findViewById(R.id.tvOwedToYouLabel);
@@ -76,6 +81,8 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         rvDebtors = findViewById(R.id.rvDebtors);
         rvCreditors = findViewById(R.id.rvCreditors);
+        tvDebtorsEmpty = findViewById(R.id.tvDebtorsEmpty);
+        tvCreditorsEmpty = findViewById(R.id.tvCreditorsEmpty);
     }
 
     private void setupRecyclerViews() {
@@ -132,6 +139,7 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         }
         debtorsAdapter.setData(debtorsList);
+        tvDebtorsEmpty.setVisibility(debtorsList.isEmpty() ? View.VISIBLE : View.GONE);
 
         double totalIOwe = 0;
         List<Debtor> creditorsList = new ArrayList<>();
@@ -143,9 +151,15 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         }
         creditorsAdapter.setData(creditorsList);
+        tvCreditorsEmpty.setVisibility(creditorsList.isEmpty() ? View.VISIBLE : View.GONE);
 
         tvOwedToYou.setText(String.format("+%.0f ₽", totalOwedToMe));
         tvYouOwe.setText(String.format("-%.0f ₽", totalIOwe));
+
+        tvOwedToYou.setTextColor(getColor(totalOwedToMe > 0
+                ? R.color.money_positive : R.color.money_gray));
+        tvYouOwe.setTextColor(getColor(totalIOwe > 0
+                ? R.color.money_black : R.color.money_gray));
     }
 
     public static class Debtor {

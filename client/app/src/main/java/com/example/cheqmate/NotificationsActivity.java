@@ -2,6 +2,7 @@ package com.example.cheqmate;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.NotificationsAdapter;
 import com.example.cheqmate.dto.NotificationResponse;
-import com.example.cheqmate.network.ApiService;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 
@@ -26,7 +26,8 @@ import retrofit2.Response;
 public class NotificationsActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private TextView tvEmpty;
+    private LinearLayout layoutEmpty;
+    private TextView tvSubtitle;
     private NotificationsAdapter adapter;
     private final List<NotificationResponse> notifications = new ArrayList<>();
     private SessionManager sessionManager;
@@ -41,7 +42,8 @@ public class NotificationsActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         recyclerView = findViewById(R.id.rvNotifications);
-        tvEmpty = findViewById(R.id.tvEmpty);
+        layoutEmpty = findViewById(R.id.layoutEmpty);
+        tvSubtitle = findViewById(R.id.tvSubtitle);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new NotificationsAdapter(notifications, this::onNotificationClicked);
@@ -65,6 +67,7 @@ public class NotificationsActivity extends AppCompatActivity {
                             notifications.addAll(response.body());
                             adapter.notifyDataSetChanged();
                             updateEmptyState();
+                            updateSubtitle();
                         } else {
                             Toast.makeText(NotificationsActivity.this,
                                     "Не удалось загрузить уведомления", Toast.LENGTH_SHORT).show();
@@ -79,6 +82,27 @@ public class NotificationsActivity extends AppCompatActivity {
                 });
     }
 
+    private void updateSubtitle() {
+        long unread = notifications.stream().filter(n -> !n.isRead()).count();
+        if (unread == 0) {
+            tvSubtitle.setText("Уведомления");
+        } else {
+            tvSubtitle.setText(unread + " " + pluralUnread(unread));
+        }
+    }
+
+    private String pluralUnread(long count) {
+        long mod10 = count % 10;
+        long mod100 = count % 100;
+        if (mod10 == 1 && mod100 != 11) {
+            return "непрочитанное";
+        }
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+            return "непрочитанных";
+        }
+        return "непрочитанных";
+    }
+
     private void onNotificationClicked(NotificationResponse notification, int position) {
         if (notification.isRead() || position == RecyclerView.NO_POSITION) {
             return;
@@ -89,6 +113,7 @@ public class NotificationsActivity extends AppCompatActivity {
         }
         notification.setRead(true);
         adapter.notifyItemChanged(position);
+        updateSubtitle();
 
         NetworkClient.getApiService()
                 .markNotificationRead("Bearer " + token, notification.getId())
@@ -101,13 +126,14 @@ public class NotificationsActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                         notification.setRead(false);
                         adapter.notifyItemChanged(position);
+                        updateSubtitle();
                     }
                 });
     }
 
     private void updateEmptyState() {
         boolean empty = notifications.isEmpty();
-        tvEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+        layoutEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
         recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
     }
 }

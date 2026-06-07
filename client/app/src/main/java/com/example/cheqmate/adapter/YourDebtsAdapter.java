@@ -43,17 +43,30 @@ public class YourDebtsAdapter extends RecyclerView.Adapter<YourDebtsAdapter.Debt
         holder.tvName.setText(debtPerson.getName());
         holder.tvAmount.setText(debtPerson.getAmount());
 
+        if (debtPerson.owesMe()) {
+            holder.tvDebtRole.setText("вам должен");
+            holder.tvAmount.setTextColor(holder.itemView.getContext().getColor(R.color.money_positive));
+        } else {
+            holder.tvDebtRole.setText("вы должны");
+            holder.tvAmount.setTextColor(holder.itemView.getContext().getColor(R.color.money_black));
+        }
+
         boolean isSelected = selectedPosition == position;
-        holder.itemView.setAlpha(isSelected ? 1.0f : 0.7f);
-        holder.ivAvatar.setBackgroundResource(isSelected ? R.drawable.circle_gray : R.drawable.circle_white);
+        holder.itemView.setBackgroundResource(
+                isSelected ? R.drawable.bg_debt_card_selected : R.drawable.bg_debt_card);
 
         holder.itemView.setOnClickListener(v -> {
+            int adapterPosition = holder.getBindingAdapterPosition();
+            if (adapterPosition == RecyclerView.NO_POSITION) {
+                return;
+            }
+
             int previousPosition = selectedPosition;
-            if (selectedPosition == holder.getBindingAdapterPosition()) {
+            if (selectedPosition == adapterPosition) {
                 selectedPosition = RecyclerView.NO_POSITION;
                 onDebtClickListener.onDebtSelected(null);
             } else {
-                selectedPosition = holder.getBindingAdapterPosition();
+                selectedPosition = adapterPosition;
                 onDebtClickListener.onDebtSelected(debtPerson);
             }
 
@@ -71,15 +84,25 @@ public class YourDebtsAdapter extends RecyclerView.Adapter<YourDebtsAdapter.Debt
         return debts.size();
     }
 
+    public void clearSelection() {
+        int previousPosition = selectedPosition;
+        selectedPosition = RecyclerView.NO_POSITION;
+        if (previousPosition != RecyclerView.NO_POSITION) {
+            notifyItemChanged(previousPosition);
+        }
+    }
+
     static class DebtViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAvatar;
         TextView tvName;
+        TextView tvDebtRole;
         TextView tvAmount;
 
-        public DebtViewHolder(@NonNull View itemView) {
+        DebtViewHolder(@NonNull View itemView) {
             super(itemView);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
             tvName = itemView.findViewById(R.id.tvName);
+            tvDebtRole = itemView.findViewById(R.id.tvDebtRole);
             tvAmount = itemView.findViewById(R.id.tvAmount);
         }
     }
