@@ -6,14 +6,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import project.cheqmate.event.ChequeAddedEvent;
+import project.cheqmate.event.NotificationMessage;
 import project.cheqmate.event.UserAddedToGroupEvent;
-import project.cheqmate.service.NotificationService;
+import project.cheqmate.service.NotificationDispatcher;
 
 @Component
 @RequiredArgsConstructor
 public class NotificationEventListener {
 
-    private final NotificationService notificationService;
+    private final NotificationDispatcher notificationDispatcher;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -22,7 +23,8 @@ public class NotificationEventListener {
         String body = String.format("%s добавил Вас в группу \"%s\"",
                 event.inviterName(), event.groupName());
 
-        notificationService.notify(event.targetUsername(), "GROUP_INVITE", title, body, null);
+        notificationDispatcher.dispatch(new NotificationMessage(
+                event.targetUsername(), "GROUP_INVITE", title, body, null));
     }
 
     @Async
@@ -34,7 +36,8 @@ public class NotificationEventListener {
 
         for (String username : event.targetUsernames()) {
             if (!username.equals(event.creatorName())) {
-                notificationService.notify(username, "CHEQUE_ADDED", title, body, null);
+                notificationDispatcher.dispatch(new NotificationMessage(
+                        username, "CHEQUE_ADDED", title, body, null));
             }
         }
     }
