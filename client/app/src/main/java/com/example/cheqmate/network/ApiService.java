@@ -3,12 +3,21 @@ package com.example.cheqmate.network;
 import com.example.cheqmate.dto.FortuneWheelRequest;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.dto.PayDebtRequest;
+import com.example.cheqmate.dto.NotificationResponse;
+import com.example.cheqmate.dto.RecognizeChequeRequest;
+import com.example.cheqmate.dto.RegisterDeviceRequest;
+
+import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("/api/auth/login")

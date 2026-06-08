@@ -1,46 +1,28 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-.kotlin
+# Postman
+.postman/
 
-### IntelliJ IDEA ###
-/.idea/modules.xml
-/.idea/jarRepositories.xml
-/.idea/compiler.xml
-/.idea/libraries/
-*.iws
+# Backend — локальные данные и IDE
+backend/.gitignore
+backend/.idea/
+backend/src/main/java/state/
+backend/src/main/java/user_files/
+
+# Terminal game — IDE и ssh
+terminal-game/.idea/
+terminal-game/ssh/
+
+# Сборка / артефакты
+out/
+target/
+
+# IntelliJ IDEA (корень и модули)
+.idea/
 *.iml
 *.ipr
+*.iws
 
-### Eclipse ###
-/.apt_generated
-/.classpath
-/.factorypath
-/.project
-/.settings
-/.springBeans
-/.sts4-cache
+# VS Code
+.vscode/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-/build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-Cheqmate/.vscode/
-
-### Mac OS ###
-Cheqmate/.DS_Store
-
-# Не нужон
-/src/main/java/user_files
-
-# Чтоб не попадало больше
-/.idea/
-/src/.gitignore
+# macOS
+.DS_Store

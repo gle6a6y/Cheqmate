@@ -26,17 +26,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String authHeader = request.getHeader("Authorization");
+        String jwt = null;
+        String username = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        }
+        else if (request.getRequestURI().contains("/api/notifications/subscribe")) {
+            jwt = request.getParameter("token");
+        }
+
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
         try {
             username = jwtService.extractUsername(jwt);
 
@@ -52,6 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expired or invalid");
+            return;
         }
 
         filterChain.doFilter(request, response);

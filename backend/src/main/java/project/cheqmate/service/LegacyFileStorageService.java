@@ -78,7 +78,8 @@ public class LegacyFileStorageService implements StorageService {
     }
 
     @Override
-    public Group createGroupWithMembers(String groupName, List<String> memberNames) {return null;} // дописать потом если надо будет
+    @Override
+    public void createGroupWithMembers(String groupName, List<String> memberNames) {} // дописать потом если надо будет
 
     @Override
     public List<Group> getGroups() {

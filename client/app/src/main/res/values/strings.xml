@@ -3,9 +3,20 @@
     <string name="project_name_lower">cheqmate</string>
     <string name="start_tagline">Простое решение для общих расходов</string>
     <string name="create_account">Создать аккаунт</string>
+    <string name="create_group_title">Создание группы</string>
+    <string name="create_group_subtitle">Придумайте название и добавьте участников</string>
+    <string name="create_group_hint">Вы уже в группе. Добавьте друзей через запятую</string>
+    <string name="create_group_button">Создать группу</string>
     <string name="sign_in">Войти</string>
     <string name="login_hint">Логин</string>
     <string name="password_hint">Пароль</string>
     <string name="sign_up">Зарегистрироваться</string>
+    <string name="login_title">Войти</string>
+    <string name="sign_up_title">Регистрация</string>
+    <string name="no_account_register">Нет аккаунта? Зарегистрироваться</string>
+    <string name="have_account_login">Уже есть аккаунт? Войти</string>
     <string name="already_have_account_leading">Уже есть аккаунт? </string>
+    <string name="notifications">Уведомления</string>
+    <string name="default_notification_channel_id">cheqmate_default</string>
+    <string name="default_notification_channel_name">Уведомления</string>
 </resources>

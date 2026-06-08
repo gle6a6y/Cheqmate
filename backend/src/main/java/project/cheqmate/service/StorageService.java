@@ -1,5 +1,8 @@
 package project.cheqmate.service;
 
+import project.cheqmate.dto.ChequeItemRequest;
+import project.cheqmate.dto.ChequeResponse;
+import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 
 import java.util.List;
@@ -17,9 +20,10 @@ public interface StorageService {
 
     Group createGroup(String groupName);
 
-    Group createGroupWithMembers(String groupName, List<String> memberNames);
+    void createGroupWithMembers(String groupName, List<String> memberNames);
 
     List<Group> getGroups();
+    List<GroupSummaryResponse> getGroupsByUser(String userName);
     Group getGroupById(int id);
     Group getGroupByName(String groupName);
     Group changeGroupName(int id, String newName);
@@ -34,17 +38,24 @@ public interface StorageService {
 
     Group addUserToGroupByName(String groupName, String userName);
 
-    Cheque createCheque(String groupName, String chequeName, double total,
-                        String ownerName, String whoPaidName);
 
-    Cheque createCheque(String groupName, String chequeName, double total,
-                        String ownerName, String whoPaidName, Map<String, Double> proportions);
+    Cheque createCheque(String groupName, String chequeName,
+                        String ownerName, String whoPaidName, Map<String, Double> proportions,
+                        List<ChequeItemRequest> items);
 
+    Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName);
     void addUserToCheque(int chequeId, int userId, double percent);
 
     void applyCheque(int chequeId);
 
     Map<String, List<Map<String, Object>>> getDebts(int userId);
+    Map<String, List<Map<String, Object>>> getDebtsByUsername(String username);
+    Map<String, List<Map<String, Object>>> getDebtsByUsernameAndGroup(String username, int groupId);
+
+    Map<String, List<Map<String, Object>>> payDebtInGroup(
+            String debtorUsername, int groupId, String creditorUsername, double amount);
 
     List<Debt> getAllDebts();
+
+    List<ChequeResponse> getChequesByGroupId(int groupId);
 }
