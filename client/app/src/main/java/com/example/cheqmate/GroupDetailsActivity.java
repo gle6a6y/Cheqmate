@@ -132,6 +132,26 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         loadCheques();
 
+        NetworkClient.getApiService().getGroupFullInfo(token, groupId).enqueue(new Callback<com.google.gson.JsonObject>() {
+            @Override
+            public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        com.google.gson.JsonArray members = response.body().getAsJsonArray("members");
+                        if (members != null) {
+                            realGroupMembers.clear();
+                            for (com.google.gson.JsonElement el : members) {
+                                realGroupMembers.add(el.getAsJsonObject().get("name").getAsString());
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {}
+        });
+
         NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
@@ -274,7 +294,11 @@ public class GroupDetailsActivity extends AppCompatActivity {
         TextInputEditText etPayAmount = sheetView.findViewById(R.id.etPayAmount);
         MaterialButton btnTransfer = sheetView.findViewById(R.id.btnTransfer);
 
-        tvPayTitle.setText("Перевод для " + selectedDebt.getName());
+        if (selectedDebt.owesMe()) {
+            tvPayTitle.setText(selectedDebt.getName() + " вернул долг?");
+        } else {
+            tvPayTitle.setText("Перевод для " + selectedDebt.getName());
+        }
         btnTransfer.setOnClickListener(v -> performTransfer(etPayAmount));
 
         payBottomSheet.show();
@@ -313,13 +337,19 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         SessionManager sessionManager = new SessionManager(this);
         String token = sessionManager.fetchAuthToken();
+        String myName = sessionManager.fetchUserName();
         if (token == null) {
             Toast.makeText(this, "Войдите снова", Toast.LENGTH_SHORT).show();
             return;
         }
 
         PayDebtRequest request = new PayDebtRequest();
-        request.setCreditorUsername(selectedDebt.getName());
+        if (selectedDebt.owesMe()) {
+            request.setCreditorUsername(myName);
+            request.setDebtorUsername(selectedDebt.getName());
+        } else {
+            request.setCreditorUsername(selectedDebt.getName());
+        }
         request.setAmount(paid);
 
         NetworkClient.getApiService()
@@ -409,6 +439,6 @@ public class GroupDetailsActivity extends AppCompatActivity {
         public double getAmountValue() { return amountValue; }
         public DebtDirection getDirection() { return direction; }
         public boolean owesMe() { return direction == DebtDirection.OWES_ME; }
-        public boolean canPay() { return direction == DebtDirection.I_OWE; }
+        public boolean canPay() { return true; }
     }
 }
