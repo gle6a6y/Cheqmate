@@ -388,6 +388,7 @@ public class PostgresStorageService implements StorageService {
                 continue;
             }
 
+            double amount = percent;
             User person = userRepo.findById(userId).orElseThrow();
 
             Optional<Debt> existing = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group);
@@ -518,7 +519,7 @@ public class PostgresStorageService implements StorageService {
                     c.getTotal(),
                     ownerName,
                     whoPaidName,
-                    null
+                    new java.util.HashMap<>(c.getProportions())
             ));
         }
 

@@ -81,6 +81,15 @@ public interface ApiService {
     @GET("/api/notifications/unread-count")
     Call<Map<String, Long>> getUnreadCount(@Header("Authorization") String token);
 
+    @POST("/api/personal-expenses")
+    Call<com.example.cheqmate.dto.PersonalExpenseResponse> createPersonalExpense(@Header("Authorization") String token, @Body com.example.cheqmate.dto.PersonalExpenseRequest request);
+
+    @GET("/api/personal-expenses")
+    Call<List<com.example.cheqmate.dto.PersonalExpenseResponse>> getPersonalExpenses(@Header("Authorization") String token);
+
+    @DELETE("/api/personal-expenses/{id}")
+    Call<Void> deletePersonalExpense(@Header("Authorization") String token, @Path("id") int id);
+
     @POST("/api/notifications/{id}/read")
     Call<Void> markNotificationRead(@Header("Authorization") String token, @Path("id") int id);
 }

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.DebtAdapter;
 import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.dto.PersonalExpenseResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 
@@ -31,6 +32,7 @@ public class AnalyticsActivity extends AppCompatActivity {
     private TextView tvYouOwe, tvYouOweLabel;
     private TextView tvMyOperations, tvPeriod;
     private TextView tvPersonalSpent, tvPersonalSpentLabel;
+    private TextView tvPersonalSpentTotal;
     private TextView tvPaidForOthers, tvPaidForOthersLabel;
     private TextView tvStats;
     private TextView tvDebtorsTitle, tvOwedToOthersTitle;
@@ -49,6 +51,11 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerViews();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadData();
     }
 
@@ -75,6 +82,10 @@ public class AnalyticsActivity extends AppCompatActivity {
         tvPaidForOthers = findViewById(R.id.tvPaidForOthers);
         tvPaidForOthersLabel = findViewById(R.id.tvPaidForOthersLabel);
         tvStats = findViewById(R.id.tvStats);
+        tvPersonalSpentTotal = findViewById(R.id.tvPersonalSpentTotal);
+
+        findViewById(R.id.btnGoToPersonalExpenses).setOnClickListener(v ->
+                startActivity(new Intent(this, PersonalExpensesActivity.class)));
 
         tvDebtorsTitle = findViewById(R.id.tvDebtorsTitle);
         tvOwedToOthersTitle = findViewById(R.id.tvOwedToOthersTitle);
@@ -122,16 +133,29 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         });
 
-        // Эти блоки пока не имеют API, оставляем нули
-        tvPersonalSpent.setText("0 ₽");
         tvPaidForOthers.setText("0 ₽");
         tvStats.setText("Данные о расходах загружаются...");
+
+        NetworkClient.getApiService().getPersonalExpenses("Bearer " + token).enqueue(new retrofit2.Callback<List<PersonalExpenseResponse>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<PersonalExpenseResponse>> call, retrofit2.Response<List<PersonalExpenseResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    double total = 0;
+                    for (PersonalExpenseResponse e : response.body()) total += e.getAmount();
+                    String totalStr = String.format("%.0f ₽", total);
+                    tvPersonalSpent.setText(totalStr);
+                    tvPersonalSpentTotal.setText(totalStr);
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<PersonalExpenseResponse>> call, Throwable t) {}
+        });
     }
 
     private void updateUI(DebtResponse debts) {
         double totalOwedToMe = 0;
         List<Debtor> debtorsList = new ArrayList<>();
-
         if (debts.getDebtors() != null) {
             for (DebtResponse.DebtItem item : debts.getDebtors()) {
                 totalOwedToMe += item.getAmount();
@@ -143,7 +167,6 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         double totalIOwe = 0;
         List<Debtor> creditorsList = new ArrayList<>();
-
         if (debts.getCreditors() != null) {
             for (DebtResponse.DebtItem item : debts.getCreditors()) {
                 totalIOwe += item.getAmount();
