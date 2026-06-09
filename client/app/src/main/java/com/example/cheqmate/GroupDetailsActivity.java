@@ -77,6 +77,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadCheques();
+        loadDebts();
     }
 
     private void initHeaderAndActions() {
@@ -132,7 +133,33 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         loadCheques();
 
-        NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
+        NetworkClient.getApiService().getGroupFullInfo(token, groupId).enqueue(new Callback<com.google.gson.JsonObject>() {
+            @Override
+            public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        com.google.gson.JsonArray members = response.body().getAsJsonArray("members");
+                        if (members != null) {
+                            realGroupMembers.clear();
+                            for (com.google.gson.JsonElement el : members) {
+                                realGroupMembers.add(el.getAsJsonObject().get("name").getAsString());
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {}
+        });
+
+        loadDebts();
+    }
+
+    private void loadDebts() {
+        if (groupId < 0) return;
+        String tok = "Bearer " + new SessionManager(this).fetchAuthToken();
+        NetworkClient.getApiService().getMyDebtsByGroup(tok, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -250,12 +277,11 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         if (selectedPerson != null && selectedPerson.canPay()) {
             btnPay.setVisibility(View.VISIBLE);
+            btnPay.setText(selectedPerson.owesMe()
+                    ? R.string.debt_close
+                    : R.string.debt_pay);
         } else {
             btnPay.setVisibility(View.GONE);
-            if (selectedPerson != null && selectedPerson.owesMe()) {
-                Toast.makeText(this, selectedPerson.getName() + " должен вам — оплата не нужна",
-                        Toast.LENGTH_SHORT).show();
-            }
         }
     }
 
@@ -274,7 +300,13 @@ public class GroupDetailsActivity extends AppCompatActivity {
         TextInputEditText etPayAmount = sheetView.findViewById(R.id.etPayAmount);
         MaterialButton btnTransfer = sheetView.findViewById(R.id.btnTransfer);
 
-        tvPayTitle.setText("Перевод для " + selectedDebt.getName());
+        if (selectedDebt.owesMe()) {
+            tvPayTitle.setText(getString(R.string.debt_received_title, selectedDebt.getName()));
+            btnTransfer.setText(R.string.debt_confirm);
+        } else {
+            tvPayTitle.setText(getString(R.string.debt_transfer_title, selectedDebt.getName()));
+            btnTransfer.setText(R.string.debt_transfer);
+        }
         btnTransfer.setOnClickListener(v -> performTransfer(etPayAmount));
 
         payBottomSheet.show();
@@ -313,14 +345,22 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         SessionManager sessionManager = new SessionManager(this);
         String token = sessionManager.fetchAuthToken();
+        String myName = sessionManager.fetchUserName();
         if (token == null) {
             Toast.makeText(this, "Войдите снова", Toast.LENGTH_SHORT).show();
             return;
         }
 
         PayDebtRequest request = new PayDebtRequest();
-        request.setCreditorUsername(selectedDebt.getName());
+        if (selectedDebt.owesMe()) {
+            request.setCreditorUsername(myName);
+            request.setDebtorUsername(selectedDebt.getName());
+        } else {
+            request.setCreditorUsername(selectedDebt.getName());
+        }
         request.setAmount(paid);
+
+        final boolean closingReceivedDebt = selectedDebt.owesMe();
 
         NetworkClient.getApiService()
                 .payDebtInGroup("Bearer " + token, groupId, request)
@@ -330,8 +370,10 @@ public class GroupDetailsActivity extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             hidePayPanel();
                             parseAndDisplayDebts(response.body());
-                            Toast.makeText(GroupDetailsActivity.this,
-                                    "Перевод учтён", Toast.LENGTH_SHORT).show();
+                            int toastRes = closingReceivedDebt
+                                    ? R.string.debt_closed_toast
+                                    : R.string.debt_paid_toast;
+                            Toast.makeText(GroupDetailsActivity.this, toastRes, Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(GroupDetailsActivity.this,
                                     "Не удалось провести перевод (" + response.code() + ")",
@@ -409,6 +451,6 @@ public class GroupDetailsActivity extends AppCompatActivity {
         public double getAmountValue() { return amountValue; }
         public DebtDirection getDirection() { return direction; }
         public boolean owesMe() { return direction == DebtDirection.OWES_ME; }
-        public boolean canPay() { return direction == DebtDirection.I_OWE; }
+        public boolean canPay() { return true; }
     }
 }

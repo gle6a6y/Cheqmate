@@ -191,17 +191,34 @@
         </androidx.cardview.widget.CardView>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnScanExpense"
+            android:id="@+id/btnRoulette"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_button_outline"
+            android:layout_marginTop="10dp"
+            android:minHeight="52dp"
+            android:text="Крутить рулетку"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/black"
+            app:strokeWidth="1.5dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScanExpense"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:minHeight="52dp"
             android:text="Сканировать чек"
             android:textAllCaps="false"
             android:textColor="@color/black"
             android:textSize="15sp"
-            app:backgroundTint="@null"
-            app:cornerRadius="14dp" />
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/black"
+            app:strokeWidth="1.5dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlayGame"

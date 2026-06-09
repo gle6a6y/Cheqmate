@@ -1,5 +1,6 @@
 package com.example.cheqmate.network;
 
+import com.example.cheqmate.dto.AchievementResponse;
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
@@ -81,6 +82,24 @@ public interface ApiService {
     @GET("/api/notifications/unread-count")
     Call<Map<String, Long>> getUnreadCount(@Header("Authorization") String token);
 
+    @POST("/api/personal-expenses")
+    Call<com.example.cheqmate.dto.PersonalExpenseResponse> createPersonalExpense(@Header("Authorization") String token, @Body com.example.cheqmate.dto.PersonalExpenseRequest request);
+
+    @GET("/api/personal-expenses")
+    Call<List<com.example.cheqmate.dto.PersonalExpenseResponse>> getPersonalExpenses(@Header("Authorization") String token);
+
+    @DELETE("/api/personal-expenses/{id}")
+    Call<Void> deletePersonalExpense(@Header("Authorization") String token, @Path("id") int id);
+
     @POST("/api/notifications/{id}/read")
     Call<Void> markNotificationRead(@Header("Authorization") String token, @Path("id") int id);
+
+    @GET("/api/achievements/my")
+    Call<List<AchievementResponse>> getMyAchievements(@Header("Authorization") String token);
+
+    @GET("/api/stats/my")
+    Call<com.example.cheqmate.dto.UserStatsResponse> getMyStats(@Header("Authorization") String token);
+
+    @GET("/api/stats/my/operations")
+    Call<com.example.cheqmate.dto.OperationsStatsResponse> getMyOperations(@Header("Authorization") String token);
 }

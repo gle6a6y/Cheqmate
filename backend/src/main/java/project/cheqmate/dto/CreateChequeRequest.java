@@ -10,4 +10,6 @@ public class CreateChequeRequest {
     private String ownerName;
     private String whoPaidName;
     private List<ChequeItemRequest> items;
+    private boolean fromQr;
+    private boolean fromRoulette;
 }

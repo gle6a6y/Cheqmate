@@ -8,6 +8,7 @@ public class ChequeRequest {
     private String ownerName;
     private String whoPaidName;
     private List<ChequeItemRequest> items;
+    private boolean fromRoulette;
 
     public ChequeRequest(String groupName, String chequeName, String ownerName, String whoPaidName, List<ChequeItemRequest> items) {
         this.groupName = groupName;
@@ -27,4 +28,6 @@ public class ChequeRequest {
     public void setWhoPaidName(String whoPaidName) { this.whoPaidName = whoPaidName; }
     public List<ChequeItemRequest> getItems() { return items; }
     public void setItems(List<ChequeItemRequest> items) { this.items = items; }
+    public boolean isFromRoulette() { return fromRoulette; }
+    public void setFromRoulette(boolean fromRoulette) { this.fromRoulette = fromRoulette; }
 }

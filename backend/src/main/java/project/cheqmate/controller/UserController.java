@@ -44,8 +44,11 @@ public class UserController {
             @PathVariable int groupId,
             @RequestBody PayDebtRequest request
     ) {
+        String debtor = request.getDebtorUsername() != null && !request.getDebtorUsername().isBlank()
+                ? request.getDebtorUsername()
+                : principal.getName();
         return storage.payDebtInGroup(
-                principal.getName(),
+                debtor,
                 groupId,
                 request.getCreditorUsername(),
                 request.getAmount());

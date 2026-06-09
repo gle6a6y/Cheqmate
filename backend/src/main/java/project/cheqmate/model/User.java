@@ -31,6 +31,9 @@ public class User {
     @JsonIgnore
     private List<Group> groups = new ArrayList<>();
 
+    @Column(name = "debts_paid_count", columnDefinition = "integer default 0")
+    private int debtsPaidCount = 0;
+
     @Transient
     @JsonIgnore
     private LinkedHashMap<String, ArrayList<String>> info = new LinkedHashMap<>();

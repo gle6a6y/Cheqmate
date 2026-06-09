@@ -19,4 +19,12 @@
     <string name="notifications">Уведомления</string>
     <string name="default_notification_channel_id">cheqmate_default</string>
     <string name="default_notification_channel_name">Уведомления</string>
+    <string name="debt_pay">Оплатить</string>
+    <string name="debt_close">Закрыть долг</string>
+    <string name="debt_transfer">Перевести</string>
+    <string name="debt_confirm">Подтвердить</string>
+    <string name="debt_received_title">%1$s вернул долг?</string>
+    <string name="debt_transfer_title">Перевод для %1$s</string>
+    <string name="debt_closed_toast">Долг закрыт</string>
+    <string name="debt_paid_toast">Перевод учтён</string>
 </resources>

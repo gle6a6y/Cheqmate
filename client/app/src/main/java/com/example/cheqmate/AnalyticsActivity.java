@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.DebtAdapter;
 import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.dto.OperationsStatsResponse;
+import com.example.cheqmate.dto.PersonalExpenseResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
 
@@ -31,6 +33,8 @@ public class AnalyticsActivity extends AppCompatActivity {
     private TextView tvYouOwe, tvYouOweLabel;
     private TextView tvMyOperations, tvPeriod;
     private TextView tvPersonalSpent, tvPersonalSpentLabel;
+    private TextView tvPersonalSpentTotal;
+    private TextView tvStatTotalSpent, tvStatCheques, tvStatDebtsPaid;
     private TextView tvPaidForOthers, tvPaidForOthersLabel;
     private TextView tvStats;
     private TextView tvDebtorsTitle, tvOwedToOthersTitle;
@@ -49,6 +53,11 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerViews();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadData();
     }
 
@@ -75,6 +84,16 @@ public class AnalyticsActivity extends AppCompatActivity {
         tvPaidForOthers = findViewById(R.id.tvPaidForOthers);
         tvPaidForOthersLabel = findViewById(R.id.tvPaidForOthersLabel);
         tvStats = findViewById(R.id.tvStats);
+        tvPersonalSpentTotal = findViewById(R.id.tvPersonalSpentTotal);
+        tvStatTotalSpent = findViewById(R.id.tvStatTotalSpent);
+        tvStatCheques = findViewById(R.id.tvStatCheques);
+        tvStatDebtsPaid = findViewById(R.id.tvStatDebtsPaid);
+
+        findViewById(R.id.btnGoToPersonalExpenses).setOnClickListener(v ->
+                startActivity(new Intent(this, PersonalExpensesActivity.class)));
+
+        findViewById(R.id.btnGoToAchievements).setOnClickListener(v ->
+                startActivity(new Intent(this, AchievementsActivity.class)));
 
         tvDebtorsTitle = findViewById(R.id.tvDebtorsTitle);
         tvOwedToOthersTitle = findViewById(R.id.tvOwedToOthersTitle);
@@ -122,16 +141,67 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         });
 
-        // Эти блоки пока не имеют API, оставляем нули
-        tvPersonalSpent.setText("0 ₽");
-        tvPaidForOthers.setText("0 ₽");
+        tvStats.setVisibility(View.VISIBLE);
         tvStats.setText("Данные о расходах загружаются...");
+
+        NetworkClient.getApiService().getMyOperations("Bearer " + token).enqueue(new Callback<OperationsStatsResponse>() {
+            @Override
+            public void onResponse(Call<OperationsStatsResponse> call, Response<OperationsStatsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    OperationsStatsResponse ops = response.body();
+                    tvPersonalSpent.setText(formatMoney(ops.getPersonalSpent()));
+                    tvPaidForOthers.setText(formatMoney(ops.getPaidForOthers()));
+                    tvStats.setVisibility(View.GONE);
+                } else {
+                    tvStats.setText("Не удалось загрузить операции");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OperationsStatsResponse> call, Throwable t) {
+                tvStats.setText("Ошибка сети при загрузке операций");
+            }
+        });
+
+        NetworkClient.getApiService().getMyStats("Bearer " + token).enqueue(new retrofit2.Callback<com.example.cheqmate.dto.UserStatsResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.example.cheqmate.dto.UserStatsResponse> call, retrofit2.Response<com.example.cheqmate.dto.UserStatsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.cheqmate.dto.UserStatsResponse stats = response.body();
+                    tvStatTotalSpent.setText(String.valueOf(stats.getGroupsCount()));
+                    tvStatCheques.setText(String.valueOf(stats.getChequesCount()));
+                    tvStatDebtsPaid.setText(String.valueOf(stats.getDebtsPaidCount()));
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.example.cheqmate.dto.UserStatsResponse> call, Throwable t) {}
+        });
+
+        NetworkClient.getApiService().getPersonalExpenses("Bearer " + token).enqueue(new Callback<List<PersonalExpenseResponse>>() {
+            @Override
+            public void onResponse(Call<List<PersonalExpenseResponse>> call, Response<List<PersonalExpenseResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    double total = 0;
+                    for (PersonalExpenseResponse e : response.body()) {
+                        total += e.getAmount();
+                    }
+                    tvPersonalSpentTotal.setText(formatMoney(total));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<PersonalExpenseResponse>> call, Throwable t) {}
+        });
+    }
+
+    private String formatMoney(double amount) {
+        return String.format("%.0f ₽", amount);
     }
 
     private void updateUI(DebtResponse debts) {
         double totalOwedToMe = 0;
         List<Debtor> debtorsList = new ArrayList<>();
-
         if (debts.getDebtors() != null) {
             for (DebtResponse.DebtItem item : debts.getDebtors()) {
                 totalOwedToMe += item.getAmount();
@@ -143,7 +213,6 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         double totalIOwe = 0;
         List<Debtor> creditorsList = new ArrayList<>();
-
         if (debts.getCreditors() != null) {
             for (DebtResponse.DebtItem item : debts.getCreditors()) {
                 totalIOwe += item.getAmount();

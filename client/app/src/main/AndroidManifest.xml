@@ -58,6 +58,15 @@
         <activity
             android:name=".NotificationsActivity"
             android:exported="false" />
+        <activity
+            android:name=".RouletteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PersonalExpensesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AchievementsActivity"
+            android:exported="false" />
 
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"

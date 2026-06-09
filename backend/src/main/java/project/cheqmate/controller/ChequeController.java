@@ -6,6 +6,9 @@ import project.cheqmate.dto.CreateChequeRequest;
 import project.cheqmate.dto.FortuneWheelRequest;
 import project.cheqmate.dto.RecognizeChequeRequest;
 import project.cheqmate.model.Cheque;
+import project.cheqmate.model.User;
+import project.cheqmate.repository.UserRepository;
+import project.cheqmate.service.AchievementService;
 import project.cheqmate.service.ChequeRecognizeService;
 import project.cheqmate.service.StorageService;
 
@@ -15,15 +18,20 @@ public class ChequeController {
 
     private final StorageService storage;
     private final ChequeRecognizeService recognizeService;
+    private final AchievementService achievementService;
+    private final UserRepository userRepo;
 
-    public ChequeController(StorageService storage, ChequeRecognizeService recognizeService) {
+    public ChequeController(StorageService storage, ChequeRecognizeService recognizeService,
+                            AchievementService achievementService, UserRepository userRepo) {
         this.storage = storage;
         this.recognizeService = recognizeService;
+        this.achievementService = achievementService;
+        this.userRepo = userRepo;
     }
 
     @PostMapping
     public Cheque createCheque(@RequestBody CreateChequeRequest req) {
-        return storage.createCheque(
+        Cheque cheque = storage.createCheque(
                 req.getGroupName(),
                 req.getChequeName(),
                 req.getOwnerName(),
@@ -31,6 +39,15 @@ public class ChequeController {
                 null,
                 req.getItems()
         );
+        userRepo.findByName(req.getOwnerName()).ifPresent(owner ->
+                achievementService.onChequeSaved(owner, req.isFromQr()));
+        if (!req.getOwnerName().equals(req.getWhoPaidName())) {
+            userRepo.findByName(req.getWhoPaidName()).ifPresent(achievementService::onPaidForOthers);
+        }
+        if (req.isFromRoulette()) {
+            userRepo.findByName(req.getWhoPaidName()).ifPresent(achievementService::onRouletteLoss);
+        }
+        return cheque;
     }
 
     @PostMapping("/fortune-wheel")

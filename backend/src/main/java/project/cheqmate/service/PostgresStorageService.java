@@ -24,12 +24,14 @@ public class PostgresStorageService implements StorageService {
     private final DebtOptimizationService debtOptimizationService;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final AchievementService achievementService;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
                                   ChequeRepository chequeRepo, DebtRepository debtRepo,
                                   DebtOptimizationService debtOptimizationService,
                                   PasswordEncoder passwordEncoder,
-                                  ApplicationEventPublisher eventPublisher) {
+                                  ApplicationEventPublisher eventPublisher,
+                                  AchievementService achievementService) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
@@ -37,6 +39,7 @@ public class PostgresStorageService implements StorageService {
         this.debtOptimizationService = debtOptimizationService;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.achievementService = achievementService;
     }
 
     @Override
@@ -359,8 +362,10 @@ public class PostgresStorageService implements StorageService {
 
         Map<String, Double> proportions = Map.of(loser.getName(), total);
 
-        return createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
+        Cheque result = createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
                 ownerName, loser.getName(), proportions, null);
+        achievementService.onRouletteLoss(loser);
+        return result;
     }
 
     @Override
@@ -448,6 +453,9 @@ public class PostgresStorageService implements StorageService {
             debtRepo.save(debt);
         }
 
+        debtor.setDebtsPaidCount(debtor.getDebtsPaidCount() + 1);
+        userRepo.save(debtor);
+        achievementService.onDebtPaid(debtor);
         return getDebtsByUsernameAndGroup(debtorUsername, groupId);
     }
 
@@ -518,7 +526,7 @@ public class PostgresStorageService implements StorageService {
                     c.getTotal(),
                     ownerName,
                     whoPaidName,
-                    null
+                    new java.util.HashMap<>(c.getProportions())
             ));
         }
 
