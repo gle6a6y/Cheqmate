@@ -1,5 +1,6 @@
 package com.example.cheqmate.network;
 
+import com.example.cheqmate.dto.AchievementResponse;
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
@@ -92,4 +93,10 @@ public interface ApiService {
 
     @POST("/api/notifications/{id}/read")
     Call<Void> markNotificationRead(@Header("Authorization") String token, @Path("id") int id);
+
+    @GET("/api/achievements/my")
+    Call<List<AchievementResponse>> getMyAchievements(@Header("Authorization") String token);
+
+    @GET("/api/stats/my")
+    Call<com.example.cheqmate.dto.UserStatsResponse> getMyStats(@Header("Authorization") String token);
 }

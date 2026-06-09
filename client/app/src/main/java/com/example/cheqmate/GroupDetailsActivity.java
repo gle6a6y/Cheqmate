@@ -77,6 +77,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadCheques();
+        loadDebts();
     }
 
     private void initHeaderAndActions() {
@@ -152,7 +153,13 @@ public class GroupDetailsActivity extends AppCompatActivity {
             public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {}
         });
 
-        NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
+        loadDebts();
+    }
+
+    private void loadDebts() {
+        if (groupId < 0) return;
+        String tok = "Bearer " + new SessionManager(this).fetchAuthToken();
+        NetworkClient.getApiService().getMyDebtsByGroup(tok, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {

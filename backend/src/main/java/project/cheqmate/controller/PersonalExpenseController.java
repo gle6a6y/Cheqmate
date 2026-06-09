@@ -7,6 +7,7 @@ import project.cheqmate.model.PersonalExpense;
 import project.cheqmate.model.User;
 import project.cheqmate.repository.PersonalExpenseRepository;
 import project.cheqmate.repository.UserRepository;
+import project.cheqmate.service.AchievementService;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -19,10 +20,13 @@ public class PersonalExpenseController {
 
     private final PersonalExpenseRepository expenseRepo;
     private final UserRepository userRepo;
+    private final AchievementService achievementService;
 
-    public PersonalExpenseController(PersonalExpenseRepository expenseRepo, UserRepository userRepo) {
+    public PersonalExpenseController(PersonalExpenseRepository expenseRepo, UserRepository userRepo,
+                                     AchievementService achievementService) {
         this.expenseRepo = expenseRepo;
         this.userRepo = userRepo;
+        this.achievementService = achievementService;
     }
 
     @PostMapping
@@ -33,6 +37,7 @@ public class PersonalExpenseController {
                 user, req.getCategory(), req.getAmount(), req.getDescription(), LocalDate.now()
         );
         expenseRepo.save(expense);
+        achievementService.onPersonalExpenseSaved(user);
         return toResponse(expense);
     }
 

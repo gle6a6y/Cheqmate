@@ -33,6 +33,7 @@ public class AnalyticsActivity extends AppCompatActivity {
     private TextView tvMyOperations, tvPeriod;
     private TextView tvPersonalSpent, tvPersonalSpentLabel;
     private TextView tvPersonalSpentTotal;
+    private TextView tvStatTotalSpent, tvStatCheques, tvStatDebtsPaid;
     private TextView tvPaidForOthers, tvPaidForOthersLabel;
     private TextView tvStats;
     private TextView tvDebtorsTitle, tvOwedToOthersTitle;
@@ -83,9 +84,15 @@ public class AnalyticsActivity extends AppCompatActivity {
         tvPaidForOthersLabel = findViewById(R.id.tvPaidForOthersLabel);
         tvStats = findViewById(R.id.tvStats);
         tvPersonalSpentTotal = findViewById(R.id.tvPersonalSpentTotal);
+        tvStatTotalSpent = findViewById(R.id.tvStatTotalSpent);
+        tvStatCheques = findViewById(R.id.tvStatCheques);
+        tvStatDebtsPaid = findViewById(R.id.tvStatDebtsPaid);
 
         findViewById(R.id.btnGoToPersonalExpenses).setOnClickListener(v ->
                 startActivity(new Intent(this, PersonalExpensesActivity.class)));
+
+        findViewById(R.id.btnGoToAchievements).setOnClickListener(v ->
+                startActivity(new Intent(this, AchievementsActivity.class)));
 
         tvDebtorsTitle = findViewById(R.id.tvDebtorsTitle);
         tvOwedToOthersTitle = findViewById(R.id.tvOwedToOthersTitle);
@@ -135,6 +142,21 @@ public class AnalyticsActivity extends AppCompatActivity {
 
         tvPaidForOthers.setText("0 ₽");
         tvStats.setText("Данные о расходах загружаются...");
+
+        NetworkClient.getApiService().getMyStats("Bearer " + token).enqueue(new retrofit2.Callback<com.example.cheqmate.dto.UserStatsResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.example.cheqmate.dto.UserStatsResponse> call, retrofit2.Response<com.example.cheqmate.dto.UserStatsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.cheqmate.dto.UserStatsResponse stats = response.body();
+                    tvStatTotalSpent.setText(String.valueOf(stats.getGroupsCount()));
+                    tvStatCheques.setText(String.valueOf(stats.getChequesCount()));
+                    tvStatDebtsPaid.setText(String.valueOf(stats.getDebtsPaidCount()));
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.example.cheqmate.dto.UserStatsResponse> call, Throwable t) {}
+        });
 
         NetworkClient.getApiService().getPersonalExpenses("Bearer " + token).enqueue(new retrofit2.Callback<List<PersonalExpenseResponse>>() {
             @Override

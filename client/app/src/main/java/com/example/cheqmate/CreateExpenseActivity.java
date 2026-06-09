@@ -56,6 +56,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private List<ChequeItemRequest> itemsList = new ArrayList<>();
     private ChequeItemsAdapter adapter;
     private String groupName;
+    private boolean fromRoulette = false;
     private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
     private ActivityResultLauncher<Intent> rouletteLauncher;
 
@@ -162,6 +163,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     }
 
     private void applyLoser(String loser) {
+        fromRoulette = true;
         actPayer.setText(loser, false);
         adapter.setAllParticipants(loser);
         Toast.makeText(this, loser + " платит за всё!", Toast.LENGTH_SHORT).show();
@@ -374,6 +376,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
                 whoPaid,
                 itemsList
         );
+        request.setFromRoulette(fromRoulette);
 
         sendToServer(request);
     }

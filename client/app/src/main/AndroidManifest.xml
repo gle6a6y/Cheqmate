@@ -64,6 +64,9 @@
         <activity
             android:name=".PersonalExpensesActivity"
             android:exported="false" />
+        <activity
+            android:name=".AchievementsActivity"
+            android:exported="false" />
 
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
