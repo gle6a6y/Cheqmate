@@ -9,9 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.cheqmate.event.NotificationMessage;
 import project.cheqmate.model.DeviceToken;
 import project.cheqmate.repository.DeviceTokenRepository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,15 @@ public class FcmService {
 
     public FcmService(DeviceTokenRepository deviceTokenRepository) {
         this.deviceTokenRepository = deviceTokenRepository;
+    }
+
+    public void sendNotification(NotificationMessage message) {
+        Map<String, String> data = new HashMap<>();
+        data.put("type", message.type());
+        if (message.groupId() != null) {
+            data.put("groupId", String.valueOf(message.groupId()));
+        }
+        sendToUser(message.recipientUsername(), message.title(), message.body(), data);
     }
 
     @Transactional
