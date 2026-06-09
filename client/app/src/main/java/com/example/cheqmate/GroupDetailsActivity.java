@@ -277,12 +277,11 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         if (selectedPerson != null && selectedPerson.canPay()) {
             btnPay.setVisibility(View.VISIBLE);
+            btnPay.setText(selectedPerson.owesMe()
+                    ? R.string.debt_close
+                    : R.string.debt_pay);
         } else {
             btnPay.setVisibility(View.GONE);
-            if (selectedPerson != null && selectedPerson.owesMe()) {
-                Toast.makeText(this, selectedPerson.getName() + " должен вам — оплата не нужна",
-                        Toast.LENGTH_SHORT).show();
-            }
         }
     }
 
@@ -302,9 +301,11 @@ public class GroupDetailsActivity extends AppCompatActivity {
         MaterialButton btnTransfer = sheetView.findViewById(R.id.btnTransfer);
 
         if (selectedDebt.owesMe()) {
-            tvPayTitle.setText(selectedDebt.getName() + " вернул долг?");
+            tvPayTitle.setText(getString(R.string.debt_received_title, selectedDebt.getName()));
+            btnTransfer.setText(R.string.debt_confirm);
         } else {
-            tvPayTitle.setText("Перевод для " + selectedDebt.getName());
+            tvPayTitle.setText(getString(R.string.debt_transfer_title, selectedDebt.getName()));
+            btnTransfer.setText(R.string.debt_transfer);
         }
         btnTransfer.setOnClickListener(v -> performTransfer(etPayAmount));
 
@@ -359,6 +360,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
         }
         request.setAmount(paid);
 
+        final boolean closingReceivedDebt = selectedDebt.owesMe();
+
         NetworkClient.getApiService()
                 .payDebtInGroup("Bearer " + token, groupId, request)
                 .enqueue(new Callback<DebtResponse>() {
@@ -367,8 +370,10 @@ public class GroupDetailsActivity extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             hidePayPanel();
                             parseAndDisplayDebts(response.body());
-                            Toast.makeText(GroupDetailsActivity.this,
-                                    "Перевод учтён", Toast.LENGTH_SHORT).show();
+                            int toastRes = closingReceivedDebt
+                                    ? R.string.debt_closed_toast
+                                    : R.string.debt_paid_toast;
+                            Toast.makeText(GroupDetailsActivity.this, toastRes, Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(GroupDetailsActivity.this,
                                     "Не удалось провести перевод (" + response.code() + ")",

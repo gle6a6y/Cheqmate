@@ -99,4 +99,7 @@ public interface ApiService {
 
     @GET("/api/stats/my")
     Call<com.example.cheqmate.dto.UserStatsResponse> getMyStats(@Header("Authorization") String token);
+
+    @GET("/api/stats/my/operations")
+    Call<com.example.cheqmate.dto.OperationsStatsResponse> getMyOperations(@Header("Authorization") String token);
 }

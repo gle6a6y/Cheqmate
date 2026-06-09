@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.DebtAdapter;
 import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.dto.OperationsStatsResponse;
 import com.example.cheqmate.dto.PersonalExpenseResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
@@ -140,8 +141,27 @@ public class AnalyticsActivity extends AppCompatActivity {
             }
         });
 
-        tvPaidForOthers.setText("0 ₽");
+        tvStats.setVisibility(View.VISIBLE);
         tvStats.setText("Данные о расходах загружаются...");
+
+        NetworkClient.getApiService().getMyOperations("Bearer " + token).enqueue(new Callback<OperationsStatsResponse>() {
+            @Override
+            public void onResponse(Call<OperationsStatsResponse> call, Response<OperationsStatsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    OperationsStatsResponse ops = response.body();
+                    tvPersonalSpent.setText(formatMoney(ops.getPersonalSpent()));
+                    tvPaidForOthers.setText(formatMoney(ops.getPaidForOthers()));
+                    tvStats.setVisibility(View.GONE);
+                } else {
+                    tvStats.setText("Не удалось загрузить операции");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OperationsStatsResponse> call, Throwable t) {
+                tvStats.setText("Ошибка сети при загрузке операций");
+            }
+        });
 
         NetworkClient.getApiService().getMyStats("Bearer " + token).enqueue(new retrofit2.Callback<com.example.cheqmate.dto.UserStatsResponse>() {
             @Override
@@ -158,21 +178,25 @@ public class AnalyticsActivity extends AppCompatActivity {
             public void onFailure(retrofit2.Call<com.example.cheqmate.dto.UserStatsResponse> call, Throwable t) {}
         });
 
-        NetworkClient.getApiService().getPersonalExpenses("Bearer " + token).enqueue(new retrofit2.Callback<List<PersonalExpenseResponse>>() {
+        NetworkClient.getApiService().getPersonalExpenses("Bearer " + token).enqueue(new Callback<List<PersonalExpenseResponse>>() {
             @Override
-            public void onResponse(retrofit2.Call<List<PersonalExpenseResponse>> call, retrofit2.Response<List<PersonalExpenseResponse>> response) {
+            public void onResponse(Call<List<PersonalExpenseResponse>> call, Response<List<PersonalExpenseResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     double total = 0;
-                    for (PersonalExpenseResponse e : response.body()) total += e.getAmount();
-                    String totalStr = String.format("%.0f ₽", total);
-                    tvPersonalSpent.setText(totalStr);
-                    tvPersonalSpentTotal.setText(totalStr);
+                    for (PersonalExpenseResponse e : response.body()) {
+                        total += e.getAmount();
+                    }
+                    tvPersonalSpentTotal.setText(formatMoney(total));
                 }
             }
 
             @Override
-            public void onFailure(retrofit2.Call<List<PersonalExpenseResponse>> call, Throwable t) {}
+            public void onFailure(Call<List<PersonalExpenseResponse>> call, Throwable t) {}
         });
+    }
+
+    private String formatMoney(double amount) {
+        return String.format("%.0f ₽", amount);
     }
 
     private void updateUI(DebtResponse debts) {

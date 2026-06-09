@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.persistence.PrePersist;
 
 @Entity
 @Table(name = "cheques")
@@ -46,6 +49,15 @@ public class Cheque {
 
     @OneToMany(mappedBy = "cheque", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChequeItem> items = new ArrayList<>();
+
+    private Instant createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 
     public Cheque(String name, User owner, User whoPaid) {
         this.name = name;
