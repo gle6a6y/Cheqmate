@@ -3,6 +3,8 @@ package project.cheqmate.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import project.cheqmate.dto.PayDebtRequest;
+import project.cheqmate.dto.ReliabilityResponse;
+import project.cheqmate.service.ReliabilityService;
 import project.cheqmate.service.StorageService;
 
 import java.security.Principal;
@@ -15,9 +17,11 @@ import java.util.NoSuchElementException;
 public class UserController {
 
     private final StorageService storage;
+    private final ReliabilityService reliabilityService;
 
-    public UserController(StorageService storage) {
+    public UserController(StorageService storage, ReliabilityService reliabilityService) {
         this.storage = storage;
+        this.reliabilityService = reliabilityService;
     }
 
 //    @GetMapping
@@ -52,6 +56,16 @@ public class UserController {
                 groupId,
                 request.getCreditorUsername(),
                 request.getAmount());
+    }
+
+    @GetMapping("/{username}/reliability")
+    public ReliabilityResponse getReliability(@PathVariable String username) {
+        return reliabilityService.getForUser(username);
+    }
+    @PostMapping("/{username}/reliability/recalculate")
+    public ReliabilityResponse recalculate(@PathVariable String username) {
+        reliabilityService.recalculateForUser(username);
+        return reliabilityService.getForUser(username);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

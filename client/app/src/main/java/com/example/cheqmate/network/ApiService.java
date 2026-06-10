@@ -14,6 +14,7 @@ import com.example.cheqmate.dto.PayDebtRequest;
 import com.example.cheqmate.dto.NotificationResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.dto.RegisterDeviceRequest;
+import com.example.cheqmate.dto.ReliabilityResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -102,4 +103,8 @@ public interface ApiService {
 
     @GET("/api/stats/my/operations")
     Call<com.example.cheqmate.dto.OperationsStatsResponse> getMyOperations(@Header("Authorization") String token);
+    @GET("/api/users/{username}/reliability")
+    Call<ReliabilityResponse> getUserReliability(
+            @Header("Authorization") String token,
+            @Path("username") String username);
 }

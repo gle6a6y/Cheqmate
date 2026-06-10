@@ -27,4 +27,9 @@
     <string name="debt_transfer_title">Перевод для %1$s</string>
     <string name="debt_closed_toast">Долг закрыт</string>
     <string name="debt_paid_toast">Перевод учтён</string>
+    <string name="group_members_title">Участники</string>
+    <string name="group_member_you">это вы</string>
+    <string name="reliability_label">надёжность</string>
+    <string name="reliability_percent">%1$d%%</string>
+    <string name="reliability_unknown">мало данных</string>
 </resources>

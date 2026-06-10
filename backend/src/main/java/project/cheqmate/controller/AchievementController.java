@@ -24,12 +24,12 @@ public class AchievementController {
     private final UserRepository userRepository;
 
     private static final Map<String, String[]> META = Map.of(
-            AchievementService.FIRST_CHEQUE, new String[]{"Первый чек", "Создал первый чек"},
-            AchievementService.GENEROUS,     new String[]{"Щедрый", "Оплатил за других 5 раз"},
-            AchievementService.HONEST,       new String[]{"Честный", "Погасил долг"},
-            AchievementService.LOSER,        new String[]{"Неудачник", "Проиграл рулетку"},
-            AchievementService.SCANNER,      new String[]{"Сканер", "Создал чек через QR"},
-            AchievementService.BIG_SPENDER,  new String[]{"Транжира", "Личные расходы превысили 10 000 ₽"}
+            AchievementService.FIRST_CHEQUE, new String[]{"\uD83E\uDDFE Первый чек", "Создал первый чек"},
+            AchievementService.GENEROUS,     new String[]{"\uD83E\uDD11 Щедрый", "Оплатил за других 5 раз"},
+            AchievementService.HONEST,       new String[]{"\uD83D\uDE07 Честный", "Погасил долг"},
+            AchievementService.LOSER,        new String[]{"\uD83D\uDCC9 Неудачник", "Проиграл рулетку"},
+            AchievementService.SCANNER,      new String[]{"\uD83D\uDCF7 Сканер", "Создал чек через QR"},
+            AchievementService.BIG_SPENDER,  new String[]{"\uD83D\uDCB0 Транжира", "Личные расходы превысили 10 000 ₽"}
     );
 
     @GetMapping("/my")

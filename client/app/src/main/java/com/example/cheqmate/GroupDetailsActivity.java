@@ -15,7 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.GroupChequesAdapter;
+import com.example.cheqmate.adapter.GroupMembersAdapter;
 import com.example.cheqmate.adapter.YourDebtsAdapter;
+import com.example.cheqmate.dto.ReliabilityResponse;
+import com.example.cheqmate.model.GroupMember;
 import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.dto.PayDebtRequest;
@@ -48,6 +51,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private final List<ChequeResponse> groupCheques = new ArrayList<>();
     private YourDebtsAdapter adapter;
     private GroupChequesAdapter chequesAdapter;
+    private GroupMembersAdapter membersAdapter;
+    private final List<GroupMember> groupMembers = new ArrayList<>();
     private TextView tvChequesEmpty;
     private TextView tvDebtsEmpty;
 
@@ -68,6 +73,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         }
 
         initHeaderAndActions();
+        setupMembersList();
         setupChequesList();
         setupDebtsList();
         loadData();
@@ -78,6 +84,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         super.onResume();
         loadCheques();
         loadDebts();
+        loadMembersReliability();
     }
 
     private void initHeaderAndActions() {
@@ -107,6 +114,55 @@ public class GroupDetailsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void setupMembersList() {
+        RecyclerView rvMembers = findViewById(R.id.rvMembers);
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        membersAdapter = new GroupMembersAdapter(groupMembers);
+        rvMembers.setAdapter(membersAdapter);
+    }
+
+    private void loadMembersReliability() {
+        String currentUser = new SessionManager(this).fetchUserName();
+        groupMembers.clear();
+        SessionManager sessionManager = new SessionManager(this);
+        String token = "Bearer " + sessionManager.fetchAuthToken();
+
+
+        for (String name : realGroupMembers) {
+
+            final String memberName = name; // а иначе ошибка будет тк вызываем анонимную функцию
+
+            NetworkClient.getApiService().getUserReliability(token, memberName).enqueue(new Callback<ReliabilityResponse>() {
+                @Override
+                public void onResponse(Call<ReliabilityResponse> call, Response<ReliabilityResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            groupMembers.add(new GroupMember(
+                                    memberName,
+                                    response.body().getReliabilityRating(),
+                                    memberName != null && memberName.equals(currentUser)));
+                            membersAdapter.notifyDataSetChanged();
+                        } catch (Exception e) {
+                            Log.d("RELIABILITY", "onResponse: " + e.getMessage());
+                        }
+                    }
+                    else {
+                        groupMembers.add(new GroupMember(
+                                memberName,
+                                null,
+                                memberName != null && memberName.equals(currentUser)));
+                        if (membersAdapter != null) {
+                            membersAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ReliabilityResponse> call, Throwable t) {}
+            });
+        }
+    }
+
     private void setupChequesList() {
         RecyclerView rvCheques = findViewById(R.id.rvCheques);
         tvChequesEmpty = findViewById(R.id.tvChequesEmpty);
@@ -133,7 +189,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         loadCheques();
 
-        NetworkClient.getApiService().getGroupFullInfo(token, groupId).enqueue(new Callback<com.google.gson.JsonObject>() {
+        NetworkClient.getApiService().getGroupFullInfo(token, groupId).enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -144,6 +200,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
                             for (com.google.gson.JsonElement el : members) {
                                 realGroupMembers.add(el.getAsJsonObject().get("name").getAsString());
                             }
+//                            loadMembersReliability();
                         }
                     } catch (Exception ignored) {}
                 }
@@ -189,7 +246,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         }
 
         String token = "Bearer " + authToken;
-        NetworkClient.getApiService().getGroupCheques(token, groupId).enqueue(new Callback<List<ChequeResponse>>() {
+        NetworkClient.getApiService().getGroupCheques(token, groupId).enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<ChequeResponse>> call, Response<List<ChequeResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -275,11 +332,9 @@ public class GroupDetailsActivity extends AppCompatActivity {
         selectedDebt = selectedPerson;
         hidePayPanel();
 
-        if (selectedPerson != null && selectedPerson.canPay()) {
+        if (selectedPerson != null && !selectedPerson.owesMe()) {
             btnPay.setVisibility(View.VISIBLE);
-            btnPay.setText(selectedPerson.owesMe()
-                    ? R.string.debt_close
-                    : R.string.debt_pay);
+            btnPay.setText(R.string.debt_pay);
         } else {
             btnPay.setVisibility(View.GONE);
         }
@@ -300,13 +355,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
         TextInputEditText etPayAmount = sheetView.findViewById(R.id.etPayAmount);
         MaterialButton btnTransfer = sheetView.findViewById(R.id.btnTransfer);
 
-        if (selectedDebt.owesMe()) {
-            tvPayTitle.setText(getString(R.string.debt_received_title, selectedDebt.getName()));
-            btnTransfer.setText(R.string.debt_confirm);
-        } else {
-            tvPayTitle.setText(getString(R.string.debt_transfer_title, selectedDebt.getName()));
-            btnTransfer.setText(R.string.debt_transfer);
-        }
+        tvPayTitle.setText(getString(R.string.debt_transfer_title, selectedDebt.getName()));
+        btnTransfer.setText(R.string.debt_transfer);
         btnTransfer.setOnClickListener(v -> performTransfer(etPayAmount));
 
         payBottomSheet.show();
@@ -345,35 +395,25 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         SessionManager sessionManager = new SessionManager(this);
         String token = sessionManager.fetchAuthToken();
-        String myName = sessionManager.fetchUserName();
         if (token == null) {
             Toast.makeText(this, "Войдите снова", Toast.LENGTH_SHORT).show();
             return;
         }
 
         PayDebtRequest request = new PayDebtRequest();
-        if (selectedDebt.owesMe()) {
-            request.setCreditorUsername(myName);
-            request.setDebtorUsername(selectedDebt.getName());
-        } else {
-            request.setCreditorUsername(selectedDebt.getName());
-        }
+        request.setCreditorUsername(selectedDebt.getName());
         request.setAmount(paid);
-
-        final boolean closingReceivedDebt = selectedDebt.owesMe();
 
         NetworkClient.getApiService()
                 .payDebtInGroup("Bearer " + token, groupId, request)
-                .enqueue(new Callback<DebtResponse>() {
+                .enqueue(new Callback<>() {
                     @Override
                     public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             hidePayPanel();
                             parseAndDisplayDebts(response.body());
-                            int toastRes = closingReceivedDebt
-                                    ? R.string.debt_closed_toast
-                                    : R.string.debt_paid_toast;
-                            Toast.makeText(GroupDetailsActivity.this, toastRes, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(GroupDetailsActivity.this, R.string.debt_paid_toast, Toast.LENGTH_SHORT).show();
+                            loadMembersReliability();
                         } else {
                             Toast.makeText(GroupDetailsActivity.this,
                                     "Не удалось провести перевод (" + response.code() + ")",

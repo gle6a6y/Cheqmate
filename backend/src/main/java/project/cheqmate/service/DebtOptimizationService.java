@@ -20,15 +20,19 @@ public class DebtOptimizationService {
     }
 
     public void optimize(Group group) {
-        List<Debt> debts = debtRepo.findByGroupId(group.getId());
+        List<Debt> debts = debtRepo.findByGroupIdAndStatus(
+                group.getId(), Debt.Status.OPEN);
+
+        if (debts.isEmpty()) {
+            return;
+        }
+
         Set<Integer> userIds = new HashSet<>();
 
         for(Debt debt : debts) {
             userIds.add(debt.getDebtor().getId());
             userIds.add(debt.getCreditor().getId());
         }
-
-        if(userIds.isEmpty()) return;
 
         if(userIds.size() <= 20) {
             List<User> users = userRepo.findAllById(userIds);
@@ -38,7 +42,11 @@ public class DebtOptimizationService {
             }
 
             List<Debt> bestDebts = dfsOptimize(debts, userIds, group, userCache);
-            debtRepo.deleteAll(debts);
+
+            for (Debt old : debts) {
+                old.setStatus(Debt.Status.SUPERSEDED);
+            }
+            debtRepo.saveAll(debts);
             debtRepo.saveAll(bestDebts);
         } else {
             greedyOptimize();

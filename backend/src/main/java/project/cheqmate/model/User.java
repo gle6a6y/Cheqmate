@@ -38,6 +38,9 @@ public class User {
     @JsonIgnore
     private LinkedHashMap<String, ArrayList<String>> info = new LinkedHashMap<>();
 
+    @Column(name = "reliability_rating")
+    private Double reliabilityRating;
+
     public User(String name, String password) {
         this.name = name;
         this.password = password;
