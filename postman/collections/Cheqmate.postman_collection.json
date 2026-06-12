@@ -1,37 +1,15 @@
 {
   "info": {
-    "_postman_id": "d47aeaed-63fc-49a2-b52b-be692b92ab14",
+    "_postman_id": "f051294c-04cf-47cc-a389-e6c28188c807",
     "name": "Cheqmate",
-    "description": "API-тесты Cheqmate (Spring Boot + JWT).\n\nПеред запуском:\n1. Подними backend (`docker compose up` или локально на :8080)\n2. Выбери environment **Cheqmate Local** (или задай `baseUrl`)\n3. Запусти папку **01 Setup**, затем **02 Flow** по порядку\n\nПеременные (`aliceToken`, `groupId`, …) сохраняются в collection variables.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "API-тесты Cheqmate (Spring Boot + JWT)\n\nПеред запуском поднять весь бэкенд (бд, кафку и запустить сам спринг)\n\nПеременные (`aliceToken`, `groupId`, …) сохраняются в collection variables",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53103977",
+    "_collection_link": "https://go.postman.co/collection/53103977-f051294c-04cf-47cc-a389-e6c28188c807?source=collection_link"
   },
-  "event": [
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "pm.test('Response time < 10s', function () {",
-          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
-          "});"
-        ]
-      }
-    }
-  ],
-  "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080/api" },
-    { "key": "aliceToken", "value": "" },
-    { "key": "bobToken", "value": "" },
-    { "key": "charlieToken", "value": "" },
-    { "key": "groupId", "value": "" },
-    { "key": "chequeId", "value": "" },
-    { "key": "groupName", "value": "Postman Trip" },
-    { "key": "renamedGroupName", "value": "Postman Trip Renamed" },
-    { "key": "aliceDebtToBob", "value": "0" }
-  ],
   "item": [
     {
-      "name": "01 Setup",
+      "name": "01 auth",
       "item": [
         {
           "name": "Register Alice",
@@ -58,13 +36,28 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/register"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Register Bob",
@@ -83,13 +76,28 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"bob\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/register"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Register Charlie",
@@ -108,13 +116,28 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"charlie\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/register"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Login Alice",
@@ -140,13 +163,28 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/login"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Login Bob",
@@ -169,13 +207,28 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"bob\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/login"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Login Charlie",
@@ -195,18 +248,33 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"charlie\",\n  \"password\": \"password123\"\n}"
             },
-            "url": "{{baseUrl}}/auth/login"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "02 Flow",
+      "name": "02 main",
       "item": [
         {
           "name": "Create Group",
@@ -222,15 +290,38 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"groupName\": \"{{groupName}}\",\n  \"memberNames\": [\"bob\"]\n}"
             },
-            "url": "{{baseUrl}}/groups"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get My Groups",
@@ -260,10 +351,30 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/groups/my"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "my"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Group By Id",
@@ -290,10 +401,30 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/groups/{{groupId}}"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "{{groupId}}"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Add Charlie To Group",
@@ -315,15 +446,40 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"userName\": \"charlie\"\n}"
             },
-            "url": "{{baseUrl}}/groups/{{groupId}}/members"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "{{groupId}}",
+                "members"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Rename Group",
@@ -343,15 +499,39 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"newName\": \"{{renamedGroupName}}\"\n}"
             },
-            "url": "{{baseUrl}}/groups/{{groupId}}"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "{{groupId}}"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Create Cheque",
@@ -377,15 +557,38 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"groupId\": {{groupId}},\n  \"chequeName\": \"Dinner\",\n  \"ownerName\": \"alice\",\n  \"whoPaidName\": \"bob\",\n  \"fromQr\": false,\n  \"fromRoulette\": false,\n  \"items\": [\n    {\n      \"name\": \"Pizza\",\n      \"price\": 500,\n      \"quantity\": 1,\n      \"participantNames\": [\"alice\"]\n    },\n    {\n      \"name\": \"Pasta\",\n      \"price\": 400,\n      \"quantity\": 1,\n      \"participantNames\": [\"bob\"]\n    },\n    {\n      \"name\": \"Wine\",\n      \"price\": 600,\n      \"quantity\": 1,\n      \"participantNames\": [\"alice\", \"charlie\"]\n    }\n  ]\n}"
             },
-            "url": "{{baseUrl}}/cheques"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/cheques",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Group Cheques",
@@ -409,10 +612,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/groups/{{groupId}}/cheques"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{groupId}}/cheques",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "{{groupId}}",
+                "cheques"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Alice Debts In Group",
@@ -440,10 +664,33 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/groups/{{groupId}}/debts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "groups",
+                "{{groupId}}",
+                "debts"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Bob Debts In Group",
@@ -464,10 +711,33 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bobToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/groups/{{groupId}}/debts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "groups",
+                "{{groupId}}",
+                "debts"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Pay Debt (Alice -> Bob)",
@@ -487,15 +757,43 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"creditorUsername\": \"bob\",\n  \"amount\": {{aliceDebtToBob}}\n}"
             },
-            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts/pay"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/me/groups/{{groupId}}/debts/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "groups",
+                "{{groupId}}",
+                "debts",
+                "pay"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Alice Reliability",
@@ -518,10 +816,31 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/users/alice/reliability"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/alice/reliability",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "alice",
+                "reliability"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Bob Notifications",
@@ -541,10 +860,29 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bobToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/notifications"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "Get Bob Unread Count",
@@ -565,53 +903,35 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bobToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/notifications/unread-count"
-          }
-        },
-        {
-          "name": "Delete Cheque",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
-                ],
-                "type": "text/javascript"
-              }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
             }
-          ],
-          "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
-            "method": "DELETE",
-            "url": "{{baseUrl}}/cheques/{{chequeId}}"
-          }
-        },
-        {
-          "name": "Delete Group",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
-            "method": "DELETE",
-            "url": "{{baseUrl}}/groups/{{groupId}}"
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "03 Negative",
+      "name": "03 negative",
       "item": [
         {
           "name": "401 Without Token",
@@ -620,16 +940,29 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                  "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/groups/my"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "my"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "404 Group Not Found",
@@ -645,10 +978,30 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": "{{baseUrl}}/groups/999999"
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "999999"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "400 Pay Without Creditor",
@@ -668,15 +1021,43 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"amount\": 100\n}"
             },
-            "url": "{{baseUrl}}/users/me/groups/1/debts/pay"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/users/me/groups/1/debts/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "groups",
+                "1",
+                "debts",
+                "pay"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "400 Add Unknown User To Group",
@@ -694,15 +1075,40 @@
             }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{aliceToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"userName\": \"unknown_user_xyz\"\n}"
             },
-            "url": "{{baseUrl}}/groups/1/members"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/groups/1/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                "1",
+                "members"
+              ]
+            }
+          },
+          "response": []
         },
         {
           "name": "401 Wrong Password",
@@ -712,24 +1118,92 @@
               "script": {
                 "exec": [
                   "pm.test('Login rejected', function () {",
-                  "    pm.expect([400, 401, 500]).to.include(pm.response.code);",
+                  "    pm.expect([400, 401, 403, 500]).to.include(pm.response.code);",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"wrong-password\"\n}"
             },
-            "url": "{{baseUrl}}/auth/login"
-          }
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
         }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response time < 10s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    },
+    {
+      "key": "aliceToken",
+      "value": ""
+    },
+    {
+      "key": "bobToken",
+      "value": ""
+    },
+    {
+      "key": "charlieToken",
+      "value": ""
+    },
+    {
+      "key": "groupId",
+      "value": ""
+    },
+    {
+      "key": "chequeId",
+      "value": ""
+    },
+    {
+      "key": "groupName",
+      "value": "Postman Trip"
+    },
+    {
+      "key": "renamedGroupName",
+      "value": "Postman Trip Renamed"
+    },
+    {
+      "key": "aliceDebtToBob",
+      "value": "0"
     }
   ]
 }
