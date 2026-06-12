@@ -2,1280 +2,734 @@
   "info": {
     "_postman_id": "d47aeaed-63fc-49a2-b52b-be692b92ab14",
     "name": "Cheqmate",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "53103977",
-    "_collection_link": "https://go.postman.co/collection/53103977-d47aeaed-63fc-49a2-b52b-be692b92ab14?source=collection_link"
+    "description": "API-тесты Cheqmate (Spring Boot + JWT).\n\nПеред запуском:\n1. Подними backend (`docker compose up` или локально на :8080)\n2. Выбери environment **Cheqmate Local** (или задай `baseUrl`)\n3. Запусти папку **01 Setup**, затем **02 Flow** по порядку\n\nПеременные (`aliceToken`, `groupId`, …) сохраняются в collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
-    {
-      "name": "positive",
-      "item": [
-        {
-          "name": "groups",
-          "item": [
-            {
-              "name": "200: Create Group With Alice, Bob And Charlie",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response has id\", function () {",
-                      "    pm.expect(json).to.have.property(\"id\");",
-                      "});",
-                      "",
-                      "pm.test(\"Response has correct groupName\", function () {",
-                      "    pm.expect(json.groupName).to.eql(\"Trip to Africa\");",
-                      "});",
-                      "",
-                      "pm.test(\"Group has members array\", function () {",
-                      "    pm.expect(json).to.have.property(\"members\");",
-                      "    pm.expect(json.members).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "pm.test(\"Members contain Alice, Bob and Charlie\", function () {",
-                      "    const names = json.members.map(m => m.name);",
-                      "    pm.expect(names).to.include(\"Alice\");",
-                      "    pm.expect(names).to.include(\"Bob\");",
-                      "    pm.expect(names).to.include(\"Charlie\");",
-                      "});",
-                      "",
-                      "pm.environment.set(\"groupId\", json.id);",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"groupName\": \"Trip to Africa\",\n    \"memberNames\": [\"Alice\", \"Bob\", \"Charlie\"]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/groups",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Check Group With Alice, Bob And Charlie",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const groups = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response is array of groups\", function () {",
-                      "    pm.expect(groups).to.be.an(\"array\");",
-                      "    pm.expect(groups.length).to.be.greaterThan(0);",
-                      "});",
-                      "",
-                      "const expectedId = Number(pm.environment.get(\"groupId\"));",
-                      "const found = groups.find(g => g.id === expectedId);",
-                      "",
-                      "pm.test(\"Group with expected id exists\", function () {",
-                      "    pm.expect(found, \"group not found in list\").to.not.be.undefined;",
-                      "});",
-                      "",
-                      "pm.test(\"Found group members contain Alice, Bob, Charlie\", function () {",
-                      "    pm.expect(found).to.not.be.undefined; // защита от падения, если выше тест пропущен",
-                      "    const names = found.members.map(m => m.name);",
-                      "    pm.expect(names).to.include(\"Alice\");",
-                      "    pm.expect(names).to.include(\"Bob\");",
-                      "    pm.expect(names).to.include(\"Charlie\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/groups",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete Group With Alice, Bob, Charlie And Martin",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{groupId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{groupId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Get All Groups",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/groups",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Rename Group With Alice, Bob And Charlie",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const group = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response is an object\", function () {",
-                      "    pm.expect(group).to.be.an(\"object\");",
-                      "    pm.expect(group).to.have.property(\"id\");",
-                      "    pm.expect(group).to.have.property(\"groupName\");",
-                      "    pm.expect(group).to.have.property(\"members\");",
-                      "});",
-                      "",
-                      "const expectedId = Number(pm.environment.get(\"groupId\"));",
-                      "",
-                      "pm.test(\"Group with expected id exists\", function () {",
-                      "    pm.expect(group.id).to.eql(expectedId);",
-                      "});",
-                      "",
-                      "pm.test(\"Group name was changed\", function () {",
-                      "    pm.expect(group.groupName).to.eql(\"Trip to Australia\");",
-                      "});",
-                      "",
-                      "pm.test(\"Found group has correct fields\", function () {",
-                      "    pm.expect(group.id).to.eql(expectedId);",
-                      "    pm.expect(group).to.have.property(\"members\");",
-                      "    pm.expect(group.members).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "pm.test(\"Found group members contain Alice, Bob, Charlie\", function () {",
-                      "    const names = group.members.map(m => m.name);",
-                      "    pm.expect(names).to.include(\"Alice\");",
-                      "    pm.expect(names).to.include(\"Bob\");",
-                      "    pm.expect(names).to.include(\"Charlie\");",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"newName\": \"Trip to Australia\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{groupId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{groupId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Add Martin To The Group",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Group has members array\", function () {",
-                      "    pm.expect(json).to.have.property(\"members\");",
-                      "    pm.expect(json.members).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "pm.test(\"Group has exactly 4 members\", function () {",
-                      "    pm.expect(json.members.length).to.eql(4);",
-                      "});",
-                      "",
-                      "pm.test(\"Members have unique names\", function () {",
-                      "    const names = json.members.map(m => m.name);",
-                      "    const uniqueNames = Array.from(new Set(names));",
-                      "    pm.expect(uniqueNames.length).to.eql(names.length);",
-                      "});",
-                      "",
-                      "pm.test(\"Members contain Alice, Bob, Charlie and Martin\", function () {",
-                      "    const names = json.members.map(m => m.name);",
-                      "    pm.expect(names).to.include(\"Alice\");",
-                      "    pm.expect(names).to.include(\"Bob\");",
-                      "    pm.expect(names).to.include(\"Charlie\");",
-                      "    pm.expect(names).to.include(\"Martin\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"userName\": \"Martin\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{groupId}}/members",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{groupId}}",
-                    "members"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "users",
-          "item": [
-            {
-              "name": "200: Get All Users",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Create User",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"dasha\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Create Alice",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const jsonData = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response has id\", function () {",
-                      "    pm.expect(jsonData).to.have.property(\"id\");",
-                      "});",
-                      "",
-                      "pm.test(\"Response has correct name\", function () {",
-                      "    pm.expect(jsonData.name).to.eql(\"Alice\");",
-                      "});",
-                      "",
-                      "pm.environment.set(\"aliceId\", jsonData.id);",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Alice\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Create Bob",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const jsonData = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response has id\", function () {",
-                      "    pm.expect(jsonData).to.have.property(\"id\");",
-                      "});",
-                      "",
-                      "pm.test(\"Response has correct name\", function () {",
-                      "    pm.expect(jsonData.name).to.eql(\"Bob\");",
-                      "});",
-                      "",
-                      "pm.environment.set(\"bobId\", jsonData.id);",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Bob\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Create Charlie",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const jsonData = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response has id\", function () {",
-                      "    pm.expect(jsonData).to.have.property(\"id\");",
-                      "});",
-                      "",
-                      "pm.test(\"Response has correct name\", function () {",
-                      "    pm.expect(jsonData.name).to.eql(\"Charlie\");",
-                      "});",
-                      "",
-                      "pm.environment.set(\"charlieId\", jsonData.id);",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Charlie\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete User",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/1",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "1"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Create Martin",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const jsonData = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response has id\", function () {",
-                      "    pm.expect(jsonData).to.have.property(\"id\");",
-                      "});",
-                      "",
-                      "pm.test(\"Response has correct name\", function () {",
-                      "    pm.expect(jsonData.name).to.eql(\"Martin\");",
-                      "});",
-                      "",
-                      "pm.environment.set(\"martinId\", jsonData.id);",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Martin\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/users",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Get Alice's Debts",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// базовая структура",
-                      "pm.test(\"Debts response has creditors/debtors arrays\", function () {",
-                      "    pm.expect(json).to.have.property(\"debtors\");",
-                      "    pm.expect(json).to.have.property(\"creditors\");",
-                      "    pm.expect(json.debtors).to.be.an(\"array\");",
-                      "    pm.expect(json.creditors).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "// Alice's creditors: Bob - 450.0",
-                      "pm.test(\"Alice owes Bob 450.0\", function () {",
-                      "    const creditors = json.creditors;",
-                      "",
-                      "    // находим запись с именем Bob",
-                      "    const bob = creditors.find(c => c.name === \"Bob\");",
-                      "",
-                      "    pm.expect(bob, \"Bob not found in Alice's creditors\").to.not.be.undefined;",
-                      "    pm.expect(bob.amount).to.eql(450.0);",
-                      "});",
-                      "",
-                      "// опционально: ровно один кредитор",
-                      "pm.test(\"Alice has exactly one creditor\", function () {",
-                      "    pm.expect(json.creditors.length).to.eql(1);",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{aliceId}}/debts",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{aliceId}}",
-                    "debts"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Get Bob's Debts",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status 200\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Bob: structure ok\", () => {",
-                      "    pm.expect(json.debtors).to.be.an(\"array\");",
-                      "    pm.expect(json.creditors).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "// Bob's creditors: пусто",
-                      "pm.test(\"Bob: no creditors\", () => {",
-                      "    pm.expect(json.creditors.length).to.eql(0);",
-                      "});",
-                      "",
-                      "// Bob's debtors: Alice - 450, Charlie - 900, Martin - 750",
-                      "pm.test(\"Bob: has 3 debtors\", () => {",
-                      "    pm.expect(json.debtors.length).to.eql(3);",
-                      "});",
-                      "",
-                      "pm.test(\"Bob: debtors and amounts correct\", () => {",
-                      "    const debtors = json.debtors;",
-                      "",
-                      "    const alice = debtors.find(d => d.name === \"Alice\");",
-                      "    const charlie = debtors.find(d => d.name === \"Charlie\");",
-                      "    const martin = debtors.find(d => d.name === \"Martin\");",
-                      "",
-                      "    pm.expect(alice, \"Alice not in Bob debtors\").to.not.be.undefined;",
-                      "    pm.expect(charlie, \"Charlie not in Bob debtors\").to.not.be.undefined;",
-                      "    pm.expect(martin, \"Martin not in Bob debtors\").to.not.be.undefined;",
-                      "",
-                      "    pm.expect(alice.amount).to.eql(450.0);",
-                      "    pm.expect(charlie.amount).to.eql(900.0);",
-                      "    pm.expect(martin.amount).to.eql(750.0);",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{bobId}}/debts",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{bobId}}",
-                    "debts"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Get Charlie's Debts",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status 200\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Charlie: structure ok\", () => {",
-                      "    pm.expect(json.debtors).to.be.an(\"array\");",
-                      "    pm.expect(json.creditors).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "// Charlie's debtors: пусто",
-                      "pm.test(\"Charlie: no debtors\", () => {",
-                      "    pm.expect(json.debtors.length).to.eql(0);",
-                      "});",
-                      "",
-                      "// Charlie's creditors: Bob - 900",
-                      "pm.test(\"Charlie: owes Bob 900.0\", () => {",
-                      "    const bob = json.creditors.find(c => c.name === \"Bob\");",
-                      "    pm.expect(bob, \"Bob not in Charlie creditors\").to.not.be.undefined;",
-                      "    pm.expect(bob.amount).to.eql(900.0);",
-                      "});",
-                      "",
-                      "pm.test(\"Charlie: exactly one creditor\", () => {",
-                      "    pm.expect(json.creditors.length).to.eql(1);",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{charlieId}}/debts",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{charlieId}}",
-                    "debts"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Get Martin's Debts",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "pm.test(\"Status 200\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Martin: structure ok\", () => {",
-                      "    pm.expect(json.debtors).to.be.an(\"array\");",
-                      "    pm.expect(json.creditors).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      "// Martin's debtors: пусто",
-                      "pm.test(\"Martin: no debtors\", () => {",
-                      "    pm.expect(json.debtors.length).to.eql(0);",
-                      "});",
-                      "",
-                      "// Martin's creditors: Bob - 750",
-                      "pm.test(\"Martin: owes Bob 750.0\", () => {",
-                      "    const bob = json.creditors.find(c => c.name === \"Bob\");",
-                      "    pm.expect(bob, \"Bob not in Martin creditors\").to.not.be.undefined;",
-                      "    pm.expect(bob.amount).to.eql(750.0);",
-                      "});",
-                      "",
-                      "pm.test(\"Martin: exactly one creditor\", () => {",
-                      "    pm.expect(json.creditors.length).to.eql(1);",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{martinId}}/debts",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{martinId}}",
-                    "debts"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete Alice",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{aliceId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{aliceId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete Bob",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{bobId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{bobId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete Charlie",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{charlieId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{charlieId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete Martin",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/users/{{martinId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "users",
-                    "{{martinId}}"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "cheques",
-          "item": [
-            {
-              "name": "200: Add Cheque To The Group",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "const json = pm.response.json();",
-                      "",
-                      "// базовые проверки",
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Cheque has required fields\", function () {",
-                      "    pm.expect(json).to.have.property(\"id\");",
-                      "    pm.expect(json).to.have.property(\"name\");",
-                      "    pm.expect(json).to.have.property(\"total\");",
-                      "    pm.expect(json).to.have.property(\"owner\");",
-                      "    pm.expect(json).to.have.property(\"whoPaid\");",
-                      "    pm.expect(json).to.have.property(\"group\");",
-                      "    pm.expect(json).to.have.property(\"proportions\");",
-                      "});",
-                      "",
-                      "pm.test(\"Cheque main fields are correct\", function () {",
-                      "    pm.expect(json.group.groupName).to.eql(\"Trip to Australia\");",
-                      "    pm.expect(json.name).to.eql(\"Dinner\");",
-                      "    pm.expect(json.total).to.eql(3000);",
-                      "    pm.expect(json.owner.name).to.eql(\"Alice\");",
-                      "    pm.expect(json.whoPaid.name).to.eql(\"Bob\");",
-                      "});",
-                      "",
-                      "pm.test(\"Proportions object has correct members\", function () {",
-                      "    pm.expect(json.proportions).to.be.an(\"object\");",
-                      "",
-                      "    const props = json.proportions;",
-                      "    const aliceId = String(pm.environment.get(\"aliceId\"));",
-                      "    const bobId = String(pm.environment.get(\"bobId\"));",
-                      "    const charlieId = String(pm.environment.get(\"charlieId\"));",
-                      "    const martinId = String(pm.environment.get(\"martinId\"));",
-                      "",
-                      "    pm.expect(props).to.have.property(aliceId);",
-                      "    pm.expect(props).to.have.property(bobId);",
-                      "    pm.expect(props).to.have.property(charlieId);",
-                      "    pm.expect(props).to.have.property(martinId);",
-                      "",
-                      "    pm.expect(props[aliceId]).to.eql(15);",
-                      "    pm.expect(props[bobId]).to.eql(40);",
-                      "    pm.expect(props[charlieId]).to.eql(30);",
-                      "    pm.expect(props[martinId]).to.eql(25);",
-                      "});",
-                      "",
-                      "pm.environment.set(\"chequeId\", json.id);"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"groupName\": \"Trip to Australia\",\n    \"chequeName\": \"Dinner\",\n    \"total\": 3000,\n    \"ownerName\": \"Alice\",\n    \"whoPaidName\": \"Bob\",\n    \"proportions\": {\n        \"Alice\": 15,\n        \"Bob\": 40,\n        \"Charlie\":  30,\n        \"Martin\": 25\n    }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/cheques",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "cheques"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "200: Delete The Cheque",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/cheques/{{chequeId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "cheques",
-                    "{{chequeId}}"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "negative",
-      "item": [
-        {
-          "name": "users",
-          "item": []
-        },
-        {
-          "name": "groups",
-          "item": [
-            {
-              "name": "500: Add Invalid User",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 500 for non-existing user\", function () {",
-                      "    pm.response.to.have.status(500);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"userName\": \"Dean\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{groupId}}/members",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{groupId}}",
-                    "members"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "500: Get a Non-Existent Group Id",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 500 for non-existing group id\", function () {",
-                      "    pm.response.to.have.status(500);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{NonExistentId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{NonExistentId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "500: Delete One Group Twice",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 500 for double free\", function () {",
-                      "    pm.response.to.have.status(500);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_URL}}/groups/{{groupId}}",
-                  "host": [
-                    "{{base_URL}}"
-                  ],
-                  "path": [
-                    "groups",
-                    "{{groupId}}"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "cheques",
-          "item": []
-        }
-      ]
-    }
-  ],
   "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    },
     {
       "listen": "test",
       "script": {
         "type": "text/javascript",
-        "packages": {},
-        "requests": {},
         "exec": [
-          ""
+          "pm.test('Response time < 10s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});"
         ]
       }
     }
   ],
   "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "aliceToken", "value": "" },
+    { "key": "bobToken", "value": "" },
+    { "key": "charlieToken", "value": "" },
+    { "key": "groupId", "value": "" },
+    { "key": "chequeId", "value": "" },
+    { "key": "groupName", "value": "Postman Trip" },
+    { "key": "renamedGroupName", "value": "Postman Trip Renamed" },
+    { "key": "aliceDebtToBob", "value": "0" }
+  ],
+  "item": [
     {
-      "key": "base_URL",
-      "value": ""
+      "name": "01 Setup",
+      "item": [
+        {
+          "name": "Register Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const code = pm.response.code;",
+                  "pm.test('Status 200 or user already exists', function () {",
+                  "    pm.expect([200, 400, 500]).to.include(code);",
+                  "});",
+                  "if (code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.test('User has id and name', function () {",
+                  "        pm.expect(body).to.have.property('id');",
+                  "        pm.expect(body.name).to.eql('alice');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Register Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or user already exists', function () {",
+                  "    pm.expect([200, 400, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"bob\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Register Charlie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or user already exists', function () {",
+                  "    pm.expect([200, 400, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"charlie\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('Returns JWT and name', function () {",
+                  "    pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.name).to.eql('alice');",
+                  "});",
+                  "pm.collectionVariables.set('aliceToken', body.token);",
+                  "pm.environment.set('aliceToken', body.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Returns JWT', function () {",
+                  "    pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set('bobToken', body.token);",
+                  "pm.environment.set('bobToken', body.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"bob\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Charlie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('charlieToken', body.token);",
+                  "pm.environment.set('charlieToken', body.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"charlie\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
     },
     {
-      "key": "UserId",
-      "value": ""
+      "name": "02 Flow",
+      "item": [
+        {
+          "name": "Create Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"groupName\": \"{{groupName}}\",\n  \"memberNames\": [\"bob\"]\n}"
+            },
+            "url": "{{baseUrl}}/groups"
+          }
+        },
+        {
+          "name": "Get My Groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const groups = pm.response.json();",
+                  "pm.test('Response is array', function () {",
+                  "    pm.expect(groups).to.be.an('array');",
+                  "});",
+                  "const groupName = pm.collectionVariables.get('groupName');",
+                  "const found = groups.find(g => g.name === groupName);",
+                  "pm.test('Created group is in list', function () {",
+                  "    pm.expect(found, 'group not found').to.not.be.undefined;",
+                  "    pm.expect(found.id).to.be.a('number');",
+                  "});",
+                  "if (found) {",
+                  "    pm.collectionVariables.set('groupId', found.id);",
+                  "    pm.environment.set('groupId', found.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/my"
+          }
+        },
+        {
+          "name": "Get Group By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const group = pm.response.json();",
+                  "pm.test('Group structure', function () {",
+                  "    pm.expect(group.id).to.eql(Number(pm.collectionVariables.get('groupId')));",
+                  "    pm.expect(group).to.have.property('members');",
+                  "    pm.expect(group.members).to.be.an('array');",
+                  "});",
+                  "pm.test('Members include alice and bob', function () {",
+                  "    const names = group.members.map(m => m.name);",
+                  "    pm.expect(names).to.include('alice');",
+                  "    pm.expect(names).to.include('bob');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        },
+        {
+          "name": "Add Charlie To Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const group = pm.response.json();",
+                  "pm.test('Charlie is a member', function () {",
+                  "    const names = group.members.map(m => m.name);",
+                  "    pm.expect(names).to.include('charlie');",
+                  "    pm.expect(group.members.length).to.be.at.least(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"charlie\"\n}"
+            },
+            "url": "{{baseUrl}}/groups/{{groupId}}/members"
+          }
+        },
+        {
+          "name": "Rename Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const group = pm.response.json();",
+                  "pm.test('Group renamed', function () {",
+                  "    pm.expect(group.groupName).to.eql(pm.collectionVariables.get('renamedGroupName'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newName\": \"{{renamedGroupName}}\"\n}"
+            },
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        },
+        {
+          "name": "Create Cheque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const cheque = pm.response.json();",
+                  "pm.test('Cheque fields', function () {",
+                  "    pm.expect(cheque).to.have.property('id');",
+                  "    pm.expect(cheque.name).to.eql('Dinner');",
+                  "    pm.expect(cheque.total).to.eql(1500);",
+                  "    pm.expect(cheque.owner.name).to.eql('alice');",
+                  "    pm.expect(cheque.whoPaid.name).to.eql('bob');",
+                  "});",
+                  "pm.collectionVariables.set('chequeId', cheque.id);",
+                  "pm.environment.set('chequeId', cheque.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"groupId\": {{groupId}},\n  \"chequeName\": \"Dinner\",\n  \"ownerName\": \"alice\",\n  \"whoPaidName\": \"bob\",\n  \"fromQr\": false,\n  \"fromRoulette\": false,\n  \"items\": [\n    {\n      \"name\": \"Pizza\",\n      \"price\": 500,\n      \"quantity\": 1,\n      \"participantNames\": [\"alice\"]\n    },\n    {\n      \"name\": \"Pasta\",\n      \"price\": 400,\n      \"quantity\": 1,\n      \"participantNames\": [\"bob\"]\n    },\n    {\n      \"name\": \"Wine\",\n      \"price\": 600,\n      \"quantity\": 1,\n      \"participantNames\": [\"alice\", \"charlie\"]\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/cheques"
+          }
+        },
+        {
+          "name": "Get Group Cheques",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const cheques = pm.response.json();",
+                  "pm.test('Cheque list contains created cheque', function () {",
+                  "    pm.expect(cheques).to.be.an('array');",
+                  "    const id = Number(pm.collectionVariables.get('chequeId'));",
+                  "    const found = cheques.find(c => c.id === id);",
+                  "    pm.expect(found, 'cheque not in list').to.not.be.undefined;",
+                  "    pm.expect(found.chequeName).to.eql('Dinner');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/{{groupId}}/cheques"
+          }
+        },
+        {
+          "name": "Get Alice Debts In Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const debts = pm.response.json();",
+                  "pm.test('Debts structure', function () {",
+                  "    pm.expect(debts).to.have.keys('debtors', 'creditors');",
+                  "    pm.expect(debts.creditors).to.be.an('array');",
+                  "    pm.expect(debts.debtors).to.be.an('array');",
+                  "});",
+                  "pm.test('Alice owes Bob', function () {",
+                  "    const bob = debts.creditors.find(c => c.name === 'bob');",
+                  "    pm.expect(bob, 'bob not in creditors').to.not.be.undefined;",
+                  "    pm.expect(bob.amount).to.be.above(0);",
+                  "});",
+                  "pm.collectionVariables.set('aliceDebtToBob', debts.creditors.find(c => c.name === 'bob').amount);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts"
+          }
+        },
+        {
+          "name": "Get Bob Debts In Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const debts = pm.response.json();",
+                  "pm.test('Bob has debtors after paying', function () {",
+                  "    pm.expect(debts.debtors).to.be.an('array');",
+                  "    pm.expect(debts.debtors.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts"
+          }
+        },
+        {
+          "name": "Pay Debt (Alice -> Bob)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const debts = pm.response.json();",
+                  "pm.test('Updated debts returned', function () {",
+                  "    pm.expect(debts).to.have.keys('debtors', 'creditors');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"creditorUsername\": \"bob\",\n  \"amount\": {{aliceDebtToBob}}\n}"
+            },
+            "url": "{{baseUrl}}/users/me/groups/{{groupId}}/debts/pay"
+          }
+        },
+        {
+          "name": "Get Alice Reliability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Reliability payload', function () {",
+                  "    pm.expect(body.username).to.eql('alice');",
+                  "    pm.expect(body).to.have.property('paidCount');",
+                  "    pm.expect(body).to.have.property('totalCount');",
+                  "    pm.expect(body.reliabilityRating === null || typeof body.reliabilityRating === 'number').to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/users/alice/reliability"
+          }
+        },
+        {
+          "name": "Get Bob Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const list = pm.response.json();",
+                  "pm.test('Notifications is array', function () {",
+                  "    pm.expect(list).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications"
+          }
+        },
+        {
+          "name": "Get Bob Unread Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Count field', function () {",
+                  "    pm.expect(body).to.have.property('count');",
+                  "    pm.expect(body.count).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{bobToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications/unread-count"
+          }
+        },
+        {
+          "name": "Delete Cheque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/cheques/{{chequeId}}"
+          }
+        },
+        {
+          "name": "Delete Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        }
+      ]
     },
     {
-      "key": "NonExistentId",
-      "value": ""
+      "name": "03 Negative",
+      "item": [
+        {
+          "name": "401 Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/my"
+          }
+        },
+        {
+          "name": "404 Group Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/groups/999999"
+          }
+        },
+        {
+          "name": "400 Pay Without Creditor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Error message present', function () {",
+                  "    pm.expect(body).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100\n}"
+            },
+            "url": "{{baseUrl}}/users/me/groups/1/debts/pay"
+          }
+        },
+        {
+          "name": "400 Add Unknown User To Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 or 404', function () {",
+                  "    pm.expect([400, 404, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{aliceToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"unknown_user_xyz\"\n}"
+            },
+            "url": "{{baseUrl}}/groups/1/members"
+          }
+        },
+        {
+          "name": "401 Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login rejected', function () {",
+                  "    pm.expect([400, 401, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"alice\",\n  \"password\": \"wrong-password\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
     }
   ]
 }

@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class FortuneWheelRequest {
-    private String groupName;
+    private int groupId;
     private String chequeName;
     private double total;
     private String ownerName;

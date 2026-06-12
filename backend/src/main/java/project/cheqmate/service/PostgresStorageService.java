@@ -292,12 +292,11 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
-    public Cheque createCheque(String groupName, String chequeName,
+    public Cheque createCheque(int groupId, String chequeName,
                                String ownerName, String whoPaidName, Map<String, Double> proportions,
                                List<ChequeItemRequest> itemRequests) {
 
-        Group group = groupRepo.findByGroupName(groupName)
-                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupName));
+        Group group = getGroupById(groupId);
         User owner = userRepo.findByName(ownerName)
                 .orElseThrow(() -> new NoSuchElementException("Owner not found: " + ownerName));
         User whoPaid = userRepo.findByName(whoPaidName)
@@ -358,9 +357,8 @@ public class PostgresStorageService implements StorageService {
 
     @Override
     @Transactional
-    public Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName) {
-        Group group = groupRepo.findByGroupName(groupName)
-                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupName));
+    public Cheque playFortuneWheel(int groupId, String chequeName, double total, String ownerName) {
+        Group group = getGroupById(groupId);
 
         List<User> members = group.getMembers();
         if (members.isEmpty()) {
@@ -371,7 +369,7 @@ public class PostgresStorageService implements StorageService {
 
         Map<String, Double> proportions = Map.of(loser.getName(), total);
 
-        Cheque result = createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
+        Cheque result = createCheque(groupId, chequeName + " (Wheel Loss: " + loser.getName() + ")",
                 ownerName, loser.getName(), proportions, null);
         achievementService.onRouletteLoss(loser);
         return result;

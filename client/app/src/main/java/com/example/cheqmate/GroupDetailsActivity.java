@@ -103,7 +103,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
     private void openCreateCheque() {
         Intent intent = new Intent(GroupDetailsActivity.this, CreateExpenseActivity.class);
-        intent.putExtra("GROUP_NAME", groupName);
+        intent.putExtra("GROUP_ID", groupId);
 
         if (realGroupMembers.isEmpty()) {
             String currentUser = new SessionManager(this).fetchUserName();

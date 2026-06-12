@@ -5,7 +5,7 @@ import java.util.List;
 
 @Data
 public class CreateChequeRequest {
-    private String groupName;
+    private int groupId;
     private String chequeName;
     private String ownerName;
     private String whoPaidName;

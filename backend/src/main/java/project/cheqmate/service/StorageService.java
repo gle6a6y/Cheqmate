@@ -39,11 +39,11 @@ public interface StorageService {
     Group addUserToGroupByName(String groupName, String userName);
 
 
-    Cheque createCheque(String groupName, String chequeName,
+    Cheque createCheque(int groupId, String chequeName,
                         String ownerName, String whoPaidName, Map<String, Double> proportions,
                         List<ChequeItemRequest> items);
 
-    Cheque playFortuneWheel(String groupName, String chequeName, double total, String ownerName);
+    Cheque playFortuneWheel(int groupId, String chequeName, double total, String ownerName);
     void addUserToCheque(int chequeId, int userId, double percent);
 
     void applyCheque(int chequeId);

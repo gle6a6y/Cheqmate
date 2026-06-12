@@ -3,23 +3,23 @@ package com.example.cheqmate.dto;
 import java.util.List;
 
 public class ChequeRequest {
-    private String groupName;
+    private int groupId;
     private String chequeName;
     private String ownerName;
     private String whoPaidName;
     private List<ChequeItemRequest> items;
     private boolean fromRoulette;
 
-    public ChequeRequest(String groupName, String chequeName, String ownerName, String whoPaidName, List<ChequeItemRequest> items) {
-        this.groupName = groupName;
+    public ChequeRequest(int groupId, String chequeName, String ownerName, String whoPaidName, List<ChequeItemRequest> items) {
+        this.groupId = groupId;
         this.chequeName = chequeName;
         this.ownerName = ownerName;
         this.whoPaidName = whoPaidName;
         this.items = items;
     }
 
-    public String getGroupName() { return groupName; }
-    public void setGroupName(String groupName) { this.groupName = groupName; }
+    public int getGroupId() { return groupId; }
+    public void setGroupId(int groupId) { this.groupId = groupId; }
     public String getChequeName() { return chequeName; }
     public void setChequeName(String chequeName) { this.chequeName = chequeName; }
     public String getOwnerName() { return ownerName; }

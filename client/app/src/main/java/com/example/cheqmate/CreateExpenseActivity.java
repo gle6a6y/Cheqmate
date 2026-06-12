@@ -55,7 +55,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
 
     private List<ChequeItemRequest> itemsList = new ArrayList<>();
     private ChequeItemsAdapter adapter;
-    private String groupName;
+    private int groupId = -1;
     private boolean fromRoulette = false;
     private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
     private ActivityResultLauncher<Intent> rouletteLauncher;
@@ -70,10 +70,8 @@ public class CreateExpenseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_expense);
 
-        groupName = getIntent().getStringExtra("GROUP_NAME");
+        groupId = getIntent().getIntExtra("GROUP_ID", -1);
         ArrayList<String> members = getIntent().getStringArrayListExtra("MEMBERS");
-
-        if (groupName == null) groupName = "Общая";
         if (members != null) {
             participants.addAll(members);
         }
@@ -362,6 +360,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
             return;
         }
 
+        if (groupId < 0) {
+            Toast.makeText(this, "Нет id группы — откройте группу с главного экрана", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         SessionManager sessionManager = new SessionManager(this);
         String ownerName = sessionManager.fetchUserName();
         if (ownerName == null) {
@@ -370,7 +373,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
         }
 
         ChequeRequest request = new ChequeRequest(
-                groupName,
+                groupId,
                 chequeName,
                 ownerName,
                 whoPaid,

@@ -32,7 +32,7 @@ public class ChequeController {
     @PostMapping
     public Cheque createCheque(@RequestBody CreateChequeRequest req) {
         Cheque cheque = storage.createCheque(
-                req.getGroupName(),
+                req.getGroupId(),
                 req.getChequeName(),
                 req.getOwnerName(),
                 req.getWhoPaidName(),
@@ -53,7 +53,7 @@ public class ChequeController {
     @PostMapping("/fortune-wheel")
     public Cheque playFortuneWheel(@RequestBody FortuneWheelRequest req) {
         return storage.playFortuneWheel(
-                req.getGroupName(),
+                req.getGroupId(),
                 req.getChequeName(),
                 req.getTotal(),
                 req.getOwnerName()
