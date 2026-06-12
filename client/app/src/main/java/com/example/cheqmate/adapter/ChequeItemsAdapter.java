@@ -42,6 +42,9 @@ public class ChequeItemsAdapter extends RecyclerView.Adapter<ChequeItemsAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChequeItemRequest item = items.get(position);
 
+        holder.etName.removeTextChangedListener(holder.nameWatcher);
+        holder.etPrice.removeTextChangedListener(holder.priceWatcher);
+
         holder.etName.setText(item.getName());
         holder.etPrice.setText(item.getPrice() > 0 ? String.valueOf(item.getPrice()) : "");
 
@@ -53,26 +56,26 @@ public class ChequeItemsAdapter extends RecyclerView.Adapter<ChequeItemsAdapter.
             holder.actParticipant.setText(item.getParticipantNames().get(0), false);
         }
 
-        // Listeners
-        holder.etName.addTextChangedListener(new SimpleTextWatcher(s -> {
+        holder.nameWatcher = new SimpleTextWatcher(s -> {
             item.setName(s);
             onDataChanged.run();
-        }));
-
-        holder.etPrice.addTextChangedListener(new SimpleTextWatcher(s -> {
+        });
+        holder.priceWatcher = new SimpleTextWatcher(s -> {
             try {
                 item.setPrice(Double.parseDouble(s));
             } catch (NumberFormatException e) {
                 item.setPrice(0);
             }
             onDataChanged.run();
-        }));
+        });
+
+        holder.etName.addTextChangedListener(holder.nameWatcher);
+        holder.etPrice.addTextChangedListener(holder.priceWatcher);
 
         holder.actParticipant.setOnItemClickListener((parent, view, pos, id) -> {
-            String selected = participants.get(pos);
-            item.setParticipantNames(Collections.singletonList(selected));
+            item.setParticipantNames(Collections.singletonList(participants.get(pos)));
             onDataChanged.run();
-        }); 
+        });
 
         holder.btnRemove.setOnClickListener(v -> {
             int currentPos = holder.getAdapterPosition();
@@ -89,10 +92,19 @@ public class ChequeItemsAdapter extends RecyclerView.Adapter<ChequeItemsAdapter.
         return items.size();
     }
 
+    public void setAllParticipants(String name) {
+        for (ChequeItemRequest item : items) {
+            item.setParticipantNames(Collections.singletonList(name));
+        }
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextInputEditText etName, etPrice;
         AutoCompleteTextView actParticipant;
         ImageButton btnRemove;
+        TextWatcher nameWatcher;
+        TextWatcher priceWatcher;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

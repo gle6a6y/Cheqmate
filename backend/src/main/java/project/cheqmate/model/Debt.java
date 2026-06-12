@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Optional;
+import java.time.Instant;
 
 @Entity
 @Table(name = "debts")
@@ -13,6 +12,12 @@ import java.util.Optional;
 @Setter
 @NoArgsConstructor
 public class Debt {
+
+    public enum Status {
+        OPEN,
+        PAID,
+        SUPERSEDED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +36,13 @@ public class Debt {
     private User debtor;
 
     private double amount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.OPEN;
+
+    @Column
+    private Instant paidAt;
 
     public Debt(User creditor, User debtor, Group group, double amount) {
         this.creditor = creditor;

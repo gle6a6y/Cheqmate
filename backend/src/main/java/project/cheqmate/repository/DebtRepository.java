@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import project.cheqmate.model.Debt;
 import project.cheqmate.model.Group;
 import project.cheqmate.model.User;
+import project.cheqmate.model.Debt.Status;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +15,12 @@ public interface DebtRepository extends JpaRepository<Debt, Integer> {
     Optional<Debt> findByCreditorAndDebtor(User creditor, User debtor);
     Optional<Debt> findByCreditorAndDebtorAndGroup(User creditor, User debtor, Group group);
     List<Debt> findByGroupId(Integer groupId);
+
+    Optional<Debt> findByCreditorAndDebtorAndGroupAndStatus(
+            User creditor, User debtor, Group group, Status status);
+    List<Debt> findByCreditorAndStatus(User creditor, Status status);
+    List<Debt> findByDebtorAndStatus(User debtor, Status status);
+    List<Debt> findByGroupIdAndStatus(Integer groupId, Status status);
+
+    long countByDebtorAndStatus(User debtor, Status status);
 }

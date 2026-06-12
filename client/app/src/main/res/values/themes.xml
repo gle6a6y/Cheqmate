@@ -17,4 +17,17 @@
     </style>
 
     <style name="Theme.Cheqmate" parent="Base.Theme.Cheqmate" />
+
+    <style name="Widget.Cheqmate.TextInputLayout.Auth" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/auth_input_bg</item>
+        <item name="boxStrokeColor">@color/black</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="hintTextColor">@color/dark_gray</item>
+        <item name="android:textColorHint">@color/dark_gray</item>
+        <item name="endIconTint">@color/black</item>
+    </style>
 </resources>

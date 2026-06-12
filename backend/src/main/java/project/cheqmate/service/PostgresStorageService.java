@@ -11,6 +11,7 @@ import project.cheqmate.dto.GroupSummaryResponse;
 import project.cheqmate.model.*;
 import project.cheqmate.repository.*;
 
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -24,12 +25,16 @@ public class PostgresStorageService implements StorageService {
     private final DebtOptimizationService debtOptimizationService;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final AchievementService achievementService;
+    private final ReliabilityService reliabilityService;
 
     public PostgresStorageService(UserRepository userRepo, GroupRepository groupRepo,
                                   ChequeRepository chequeRepo, DebtRepository debtRepo,
                                   DebtOptimizationService debtOptimizationService,
                                   PasswordEncoder passwordEncoder,
-                                  ApplicationEventPublisher eventPublisher) {
+                                  ApplicationEventPublisher eventPublisher,
+                                  AchievementService achievementService,
+                                  ReliabilityService reliabilityService) {
         this.userRepo = userRepo;
         this.groupRepo = groupRepo;
         this.chequeRepo = chequeRepo;
@@ -37,6 +42,8 @@ public class PostgresStorageService implements StorageService {
         this.debtOptimizationService = debtOptimizationService;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.achievementService = achievementService;
+        this.reliabilityService = reliabilityService;
     }
 
     @Override
@@ -121,7 +128,7 @@ public class PostgresStorageService implements StorageService {
         for (Group group : groups) {
             double income = 0;
             double expense = 0;
-            List<Debt> debts = debtRepo.findByGroupId(group.getId());
+            List<Debt> debts = debtRepo.findByGroupIdAndStatus(group.getId(), Debt.Status.OPEN);
             for (Debt debt : debts) {
                 if (debt.getCreditor().getId().equals(user.getId())) {
                     income += debt.getAmount();
@@ -207,6 +214,7 @@ public class PostgresStorageService implements StorageService {
     public void deleteCheque(int chequeId) {
         Cheque cheque = chequeRepo.findById(chequeId).orElseThrow();
         User whoPaid = cheque.getWhoPaid();
+        Group group = cheque.getGroup();
 
         for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
             int userId = entry.getKey();
@@ -217,14 +225,15 @@ public class PostgresStorageService implements StorageService {
             }
 
             User person = userRepo.findById(userId).orElseThrow();
-            Group group = cheque.getGroup();
-
-            Debt debt = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group)
+            Debt debt = debtRepo.findByCreditorAndDebtorAndGroupAndStatus(
+                            whoPaid, person, group, Debt.Status.OPEN)
                     .orElseThrow(() -> new NoSuchElementException("Debt not found"));
 
             double newAmount = debt.getAmount() - amount;
             if (newAmount <= 1e-6) {
-                debtRepo.delete(debt);
+                debt.setAmount(0);
+                debt.setStatus(Debt.Status.SUPERSEDED);
+                debtRepo.save(debt);
             } else {
                 debt.setAmount(newAmount);
                 debtRepo.save(debt);
@@ -234,6 +243,9 @@ public class PostgresStorageService implements StorageService {
         chequeRepo.delete(cheque);
 
         debtOptimizationService.optimize(cheque.getGroup());
+        for (User member : group.getMembers()) {
+            reliabilityService.recalculateForUser(member.getName());
+        }
     }
 
     @Override
@@ -359,8 +371,10 @@ public class PostgresStorageService implements StorageService {
 
         Map<String, Double> proportions = Map.of(loser.getName(), total);
 
-        return createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
+        Cheque result = createCheque(groupName, chequeName + " (Wheel Loss: " + loser.getName() + ")",
                 ownerName, loser.getName(), proportions, null);
+        achievementService.onRouletteLoss(loser);
+        return result;
     }
 
     @Override
@@ -390,7 +404,8 @@ public class PostgresStorageService implements StorageService {
 
             User person = userRepo.findById(userId).orElseThrow();
 
-            Optional<Debt> existing = debtRepo.findByCreditorAndDebtorAndGroup(whoPaid, person, group);
+            Optional<Debt> existing = debtRepo.findByCreditorAndDebtorAndGroupAndStatus(
+                    whoPaid, person, group, Debt.Status.OPEN);
             if (existing.isPresent()) {
                 Debt debt = existing.get();
                 debt.setAmount(debt.getAmount() + amount);
@@ -400,6 +415,9 @@ public class PostgresStorageService implements StorageService {
             }
         }
         debtOptimizationService.optimize(cheque.getGroup());
+        for (User member : group.getMembers()) {
+            reliabilityService.recalculateForUser(member.getName());
+        }
     }
 
     @Override
@@ -408,6 +426,55 @@ public class PostgresStorageService implements StorageService {
         User user = userRepo.findByName(username)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
         return getDebts(user.getId());
+    }
+
+    @Override
+    @Transactional
+    public Map<String, List<Map<String, Object>>> payDebtInGroup(
+            String debtorUsername, int groupId, String creditorUsername, double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        if (creditorUsername == null || creditorUsername.isBlank()) {
+            throw new IllegalArgumentException("Creditor username is required");
+        }
+
+        User debtor = userRepo.findByName(debtorUsername)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + debtorUsername));
+        User creditor = userRepo.findByName(creditorUsername)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + creditorUsername));
+        Group group = groupRepo.findById(groupId)
+                .orElseThrow(() -> new NoSuchElementException("Group not found: " + groupId));
+
+        if (debtor.getId().equals(creditor.getId())) {
+            throw new IllegalArgumentException("Cannot pay yourself");
+        }
+
+        Debt debt = debtRepo.findByCreditorAndDebtorAndGroupAndStatus(
+                        creditor, debtor, group, Debt.Status.OPEN)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Debt not found for creditor " + creditorUsername + " in group " + groupId));
+
+        if (amount > debt.getAmount() + 1e-6) {
+            throw new IllegalArgumentException("Amount exceeds debt");
+        }
+
+        double newAmount = debt.getAmount() - amount;
+        if (newAmount <= 1e-6) {
+            debt.setAmount(0);
+            debt.setStatus(Debt.Status.PAID);
+            debt.setPaidAt(Instant.now());
+            debtRepo.save(debt);
+        } else {
+            debt.setAmount(newAmount);
+            debtRepo.save(debt);
+        }
+
+        debtor.setDebtsPaidCount(debtor.getDebtsPaidCount() + 1);
+        userRepo.save(debtor);
+        achievementService.onDebtPaid(debtor);
+        reliabilityService.recalculateForUser(debtorUsername);
+        return getDebtsByUsernameAndGroup(debtorUsername, groupId);
     }
 
     @Override
@@ -420,7 +487,7 @@ public class PostgresStorageService implements StorageService {
         List<Map<String, Object>> debtors = new ArrayList<>();
         List<Map<String, Object>> creditors = new ArrayList<>();
 
-        for (Debt d : debtRepo.findByGroupId(groupId)) {
+        for (Debt d : debtRepo.findByGroupIdAndStatus(groupId, Debt.Status.OPEN)) {
             if (d.getCreditor().getId().equals(user.getId())) {
                 debtors.add(Map.of("name", d.getDebtor().getName(), "amount", d.getAmount()));
             } else if (d.getDebtor().getId().equals(user.getId())) {
@@ -440,13 +507,13 @@ public class PostgresStorageService implements StorageService {
         Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
 
         List<Map<String, Object>> debtors = new ArrayList<>();
-        for (Debt d : debtRepo.findByCreditor(user)) {
+        for (Debt d : debtRepo.findByCreditorAndStatus(user, Debt.Status.OPEN)) {
             debtors.add(Map.of("name", d.getDebtor().getName(), "amount", d.getAmount()));
         }
         result.put("debtors", debtors);
 
         List<Map<String, Object>> creditors = new ArrayList<>();
-        for (Debt d : debtRepo.findByDebtor(user)) {
+        for (Debt d : debtRepo.findByDebtorAndStatus(user, Debt.Status.OPEN)) {
             creditors.add(Map.of("name", d.getCreditor().getName(), "amount", d.getAmount()));
         }
         result.put("creditors", creditors);
@@ -477,7 +544,7 @@ public class PostgresStorageService implements StorageService {
                     c.getTotal(),
                     ownerName,
                     whoPaidName,
-                    null
+                    new java.util.HashMap<>(c.getProportions())
             ));
         }
 

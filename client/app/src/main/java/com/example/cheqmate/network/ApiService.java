@@ -1,5 +1,6 @@
 package com.example.cheqmate.network;
 
+import com.example.cheqmate.dto.AchievementResponse;
 import com.example.cheqmate.dto.ChequeRequest;
 import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.CreateGameSessionRequest;
@@ -9,9 +10,11 @@ import com.example.cheqmate.dto.GroupCreateRequest;
 import com.example.cheqmate.dto.GroupResponse;
 import com.example.cheqmate.dto.LoginRequest;
 import com.example.cheqmate.dto.LoginResponse;
+import com.example.cheqmate.dto.PayDebtRequest;
 import com.example.cheqmate.dto.NotificationResponse;
 import com.example.cheqmate.dto.RecognizeChequeRequest;
 import com.example.cheqmate.dto.RegisterDeviceRequest;
+import com.example.cheqmate.dto.ReliabilityResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,12 @@ public interface ApiService {
     @GET("/api/users/me/groups/{groupId}/debts")
     Call<DebtResponse> getMyDebtsByGroup(@Header("Authorization") String token, @Path("groupId") int groupId);
 
+    @POST("/api/users/me/groups/{groupId}/debts/pay")
+    Call<DebtResponse> payDebtInGroup(
+            @Header("Authorization") String token,
+            @Path("groupId") int groupId,
+            @Body PayDebtRequest request);
+
     @POST("/api/cheques")
     Call<Void> createCheque(@Header("Authorization") String token, @Body ChequeRequest request);
 
@@ -74,6 +83,28 @@ public interface ApiService {
     @GET("/api/notifications/unread-count")
     Call<Map<String, Long>> getUnreadCount(@Header("Authorization") String token);
 
+    @POST("/api/personal-expenses")
+    Call<com.example.cheqmate.dto.PersonalExpenseResponse> createPersonalExpense(@Header("Authorization") String token, @Body com.example.cheqmate.dto.PersonalExpenseRequest request);
+
+    @GET("/api/personal-expenses")
+    Call<List<com.example.cheqmate.dto.PersonalExpenseResponse>> getPersonalExpenses(@Header("Authorization") String token);
+
+    @DELETE("/api/personal-expenses/{id}")
+    Call<Void> deletePersonalExpense(@Header("Authorization") String token, @Path("id") int id);
+
     @POST("/api/notifications/{id}/read")
     Call<Void> markNotificationRead(@Header("Authorization") String token, @Path("id") int id);
+
+    @GET("/api/achievements/my")
+    Call<List<AchievementResponse>> getMyAchievements(@Header("Authorization") String token);
+
+    @GET("/api/stats/my")
+    Call<com.example.cheqmate.dto.UserStatsResponse> getMyStats(@Header("Authorization") String token);
+
+    @GET("/api/stats/my/operations")
+    Call<com.example.cheqmate.dto.OperationsStatsResponse> getMyOperations(@Header("Authorization") String token);
+    @GET("/api/users/{username}/reliability")
+    Call<ReliabilityResponse> getUserReliability(
+            @Header("Authorization") String token,
+            @Path("username") String username);
 }

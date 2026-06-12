@@ -1,5 +1,6 @@
 package com.example.cheqmate;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,7 +56,9 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private List<ChequeItemRequest> itemsList = new ArrayList<>();
     private ChequeItemsAdapter adapter;
     private String groupName;
+    private boolean fromRoulette = false;
     private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
+    private ActivityResultLauncher<Intent> rouletteLauncher;
 
     private final Handler sessionPollHandler = new Handler(Looper.getMainLooper());
     private Runnable sessionPollRunnable;
@@ -81,11 +85,19 @@ public class CreateExpenseActivity extends AppCompatActivity {
                 new ScanContract(),
                 result -> {
                     String qrRaw = result.getContents();
-                    if (qrRaw == null) {
-                        return;
-                    }
+                    if (qrRaw == null) return;
                     Log.d("SCAN", "Code: " + qrRaw);
                     fetchChequeFromQr(qrRaw);
+                }
+        );
+
+        rouletteLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        String loser = result.getData().getStringExtra(RouletteActivity.EXTRA_LOSER);
+                        if (loser != null) applyLoser(loser);
+                    }
                 }
         );
 
@@ -135,8 +147,26 @@ public class CreateExpenseActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnAddPosition).setOnClickListener(v -> addNewPosition());
         findViewById(R.id.btnAddExpense).setOnClickListener(v -> submitCheque());
+        findViewById(R.id.btnRoulette).setOnClickListener(v -> launchRoulette());
         findViewById(R.id.btnScanExpense).setOnClickListener(v -> launchQrScanner());
         findViewById(R.id.btnPlayGame).setOnClickListener(v -> createGameSession());
+    }
+
+    private void launchRoulette() {
+        if (participants.isEmpty()) {
+            Toast.makeText(this, "Нет участников для рулетки", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(this, RouletteActivity.class);
+        intent.putStringArrayListExtra(RouletteActivity.EXTRA_MEMBERS, new ArrayList<>(participants));
+        rouletteLauncher.launch(intent);
+    }
+
+    private void applyLoser(String loser) {
+        fromRoulette = true;
+        actPayer.setText(loser, false);
+        adapter.setAllParticipants(loser);
+        Toast.makeText(this, loser + " платит за всё!", Toast.LENGTH_SHORT).show();
     }
 
     private void createGameSession() {
@@ -228,7 +258,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
     }
 
     private void updateGameInfoWhilePolling(long sessionId, GameSessionResponse session) {
-        tvGameInfo.setText("Сессия №" + sessionId + "\n Введите в терминале: ssh cheqmate@localhost"
+        tvGameInfo.setText("Сессия №" + sessionId + "\nВведите в терминале: ssh cheqmate@localhost"
                 + "\nГолосов за игру: " + session.getReady()
                 + "\nЖдём, кто проиграет...");
     }
@@ -346,6 +376,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
                 whoPaid,
                 itemsList
         );
+        request.setFromRoulette(fromRoulette);
 
         sendToServer(request);
     }

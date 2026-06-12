@@ -94,7 +94,7 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {
                 super.updateDrawState(ds);
-                ds.setColor(ContextCompat.getColor(SignUpActivity.this, R.color.link_text));
+                ds.setColor(ContextCompat.getColor(SignUpActivity.this, R.color.black));
                 ds.setUnderlineText(true);
             }
         }, linkStart, linkEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

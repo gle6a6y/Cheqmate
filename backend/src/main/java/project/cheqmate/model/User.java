@@ -31,9 +31,15 @@ public class User {
     @JsonIgnore
     private List<Group> groups = new ArrayList<>();
 
+    @Column(name = "debts_paid_count", columnDefinition = "integer default 0")
+    private int debtsPaidCount = 0;
+
     @Transient
     @JsonIgnore
     private LinkedHashMap<String, ArrayList<String>> info = new LinkedHashMap<>();
+
+    @Column(name = "reliability_rating")
+    private Double reliabilityRating;
 
     public User(String name, String password) {
         this.name = name;

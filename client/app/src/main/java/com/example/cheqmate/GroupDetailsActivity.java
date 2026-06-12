@@ -15,12 +15,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.adapter.GroupChequesAdapter;
+import com.example.cheqmate.adapter.GroupMembersAdapter;
 import com.example.cheqmate.adapter.YourDebtsAdapter;
+import com.example.cheqmate.dto.ReliabilityResponse;
+import com.example.cheqmate.model.GroupMember;
 import com.example.cheqmate.dto.ChequeResponse;
 import com.example.cheqmate.dto.DebtResponse;
+import com.example.cheqmate.dto.PayDebtRequest;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -35,6 +41,8 @@ import retrofit2.Response;
 public class GroupDetailsActivity extends AppCompatActivity {
 
     private MaterialButton btnPay;
+    private BottomSheetDialog payBottomSheet;
+    private DebtPerson selectedDebt;
     private String groupName;
     private int groupId;
 
@@ -43,6 +51,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private final List<ChequeResponse> groupCheques = new ArrayList<>();
     private YourDebtsAdapter adapter;
     private GroupChequesAdapter chequesAdapter;
+    private GroupMembersAdapter membersAdapter;
+    private final List<GroupMember> groupMembers = new ArrayList<>();
     private TextView tvChequesEmpty;
     private TextView tvDebtsEmpty;
 
@@ -63,6 +73,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         }
 
         initHeaderAndActions();
+        setupMembersList();
         setupChequesList();
         setupDebtsList();
         loadData();
@@ -72,6 +83,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadCheques();
+        loadDebts();
+        loadMembersReliability();
     }
 
     private void initHeaderAndActions() {
@@ -83,9 +96,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         btnAddCheck.setOnClickListener(v -> openCreateCheque());
 
-        btnPay.setOnClickListener(v ->
-                Toast.makeText(this, "Оплата будет доступна скоро", Toast.LENGTH_SHORT).show()
-        );
+        btnPay.setOnClickListener(v -> openPayPanel());
     }
 
     private void openCreateCheque() {
@@ -103,6 +114,55 @@ public class GroupDetailsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void setupMembersList() {
+        RecyclerView rvMembers = findViewById(R.id.rvMembers);
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        membersAdapter = new GroupMembersAdapter(groupMembers);
+        rvMembers.setAdapter(membersAdapter);
+    }
+
+    private void loadMembersReliability() {
+        String currentUser = new SessionManager(this).fetchUserName();
+        groupMembers.clear();
+        SessionManager sessionManager = new SessionManager(this);
+        String token = "Bearer " + sessionManager.fetchAuthToken();
+
+
+        for (String name : realGroupMembers) {
+
+            final String memberName = name; // а иначе ошибка будет тк вызываем анонимную функцию
+
+            NetworkClient.getApiService().getUserReliability(token, memberName).enqueue(new Callback<ReliabilityResponse>() {
+                @Override
+                public void onResponse(Call<ReliabilityResponse> call, Response<ReliabilityResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            groupMembers.add(new GroupMember(
+                                    memberName,
+                                    response.body().getReliabilityRating(),
+                                    memberName != null && memberName.equals(currentUser)));
+                            membersAdapter.notifyDataSetChanged();
+                        } catch (Exception e) {
+                            Log.d("RELIABILITY", "onResponse: " + e.getMessage());
+                        }
+                    }
+                    else {
+                        groupMembers.add(new GroupMember(
+                                memberName,
+                                null,
+                                memberName != null && memberName.equals(currentUser)));
+                        if (membersAdapter != null) {
+                            membersAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ReliabilityResponse> call, Throwable t) {}
+            });
+        }
+    }
+
     private void setupChequesList() {
         RecyclerView rvCheques = findViewById(R.id.rvCheques);
         tvChequesEmpty = findViewById(R.id.tvChequesEmpty);
@@ -116,7 +176,6 @@ public class GroupDetailsActivity extends AppCompatActivity {
         tvDebtsEmpty = findViewById(R.id.tvDebtsEmpty);
         rvYourDebts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        // Инициализируем адаптер с пустым (пока что) списком debtPeople
         adapter = new YourDebtsAdapter(debtPeople, this::onDebtSelected);
         rvYourDebts.setAdapter(adapter);
     }
@@ -130,7 +189,34 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         loadCheques();
 
-        NetworkClient.getApiService().getMyDebtsByGroup(token, groupId).enqueue(new Callback<DebtResponse>() {
+        NetworkClient.getApiService().getGroupFullInfo(token, groupId).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<com.google.gson.JsonObject> call, Response<com.google.gson.JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        com.google.gson.JsonArray members = response.body().getAsJsonArray("members");
+                        if (members != null) {
+                            realGroupMembers.clear();
+                            for (com.google.gson.JsonElement el : members) {
+                                realGroupMembers.add(el.getAsJsonObject().get("name").getAsString());
+                            }
+//                            loadMembersReliability();
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.google.gson.JsonObject> call, Throwable t) {}
+        });
+
+        loadDebts();
+    }
+
+    private void loadDebts() {
+        if (groupId < 0) return;
+        String tok = "Bearer " + new SessionManager(this).fetchAuthToken();
+        NetworkClient.getApiService().getMyDebtsByGroup(tok, groupId).enqueue(new Callback<DebtResponse>() {
             @Override
             public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -160,7 +246,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         }
 
         String token = "Bearer " + authToken;
-        NetworkClient.getApiService().getGroupCheques(token, groupId).enqueue(new Callback<List<ChequeResponse>>() {
+        NetworkClient.getApiService().getGroupCheques(token, groupId).enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<ChequeResponse>> call, Response<List<ChequeResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -207,18 +293,14 @@ public class GroupDetailsActivity extends AppCompatActivity {
         TextView tvOwedToYou = findViewById(R.id.tvOwedToYou);
         TextView tvYouOwe = findViewById(R.id.tvYouOwe);
 
-        double totalOwedToMe = 0;
-        double totalIOwe = 0;
-
         debtPeople.clear();
 
         if (response.getDebtors() != null) {
             for (DebtResponse.DebtItem d : response.getDebtors()) {
                 String name = d.getName();
                 double amount = d.getAmount();
-                totalOwedToMe += amount;
                 debtPeople.add(new DebtPerson(
-                        R.drawable.ic_home, name,
+                        R.drawable.ic_photo_user, name, amount,
                         String.format("+%.2f ₽", amount),
                         DebtDirection.OWES_ME));
             }
@@ -228,11 +310,137 @@ public class GroupDetailsActivity extends AppCompatActivity {
             for (DebtResponse.DebtItem c : response.getCreditors()) {
                 String name = c.getName();
                 double amount = c.getAmount();
-                totalIOwe += amount;
                 debtPeople.add(new DebtPerson(
-                        R.drawable.ic_plane, name,
+                        R.drawable.ic_photo_user, name, amount,
                         String.format("-%.2f ₽", amount),
                         DebtDirection.I_OWE));
+            }
+        }
+
+        refreshDebtSummary();
+
+        adapter.clearSelection();
+        adapter.notifyDataSetChanged();
+        hidePayPanel();
+        btnPay.setVisibility(View.GONE);
+        selectedDebt = null;
+
+        updateDebtsEmptyState();
+    }
+
+    private void onDebtSelected(DebtPerson selectedPerson) {
+        selectedDebt = selectedPerson;
+        hidePayPanel();
+
+        if (selectedPerson != null && !selectedPerson.owesMe()) {
+            btnPay.setVisibility(View.VISIBLE);
+            btnPay.setText(R.string.debt_pay);
+        } else {
+            btnPay.setVisibility(View.GONE);
+        }
+    }
+
+    private void openPayPanel() {
+        if (selectedDebt == null || !selectedDebt.canPay()) {
+            return;
+        }
+
+        hidePayPanel();
+
+        payBottomSheet = new BottomSheetDialog(this);
+        View sheetView = getLayoutInflater().inflate(R.layout.dialog_pay, null);
+        payBottomSheet.setContentView(sheetView);
+
+        TextView tvPayTitle = sheetView.findViewById(R.id.tvPayTitle);
+        TextInputEditText etPayAmount = sheetView.findViewById(R.id.etPayAmount);
+        MaterialButton btnTransfer = sheetView.findViewById(R.id.btnTransfer);
+
+        tvPayTitle.setText(getString(R.string.debt_transfer_title, selectedDebt.getName()));
+        btnTransfer.setText(R.string.debt_transfer);
+        btnTransfer.setOnClickListener(v -> performTransfer(etPayAmount));
+
+        payBottomSheet.show();
+    }
+
+    private void performTransfer(TextInputEditText etPayAmount) {
+        if (selectedDebt == null || !selectedDebt.canPay()) {
+            return;
+        }
+
+        String raw = etPayAmount.getText() != null
+                ? etPayAmount.getText().toString().trim().replace(',', '.')
+                : "";
+        if (raw.isEmpty()) {
+            Toast.makeText(this, "Введите сумму", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        double paid;
+        try {
+            paid = Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Некорректная сумма", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (paid <= 0) {
+            Toast.makeText(this, "Сумма должна быть больше нуля", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (paid > selectedDebt.getAmountValue() + 1e-6) {
+            Toast.makeText(this, "Сумма больше долга", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        SessionManager sessionManager = new SessionManager(this);
+        String token = sessionManager.fetchAuthToken();
+        if (token == null) {
+            Toast.makeText(this, "Войдите снова", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PayDebtRequest request = new PayDebtRequest();
+        request.setCreditorUsername(selectedDebt.getName());
+        request.setAmount(paid);
+
+        NetworkClient.getApiService()
+                .payDebtInGroup("Bearer " + token, groupId, request)
+                .enqueue(new Callback<>() {
+                    @Override
+                    public void onResponse(Call<DebtResponse> call, Response<DebtResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            hidePayPanel();
+                            parseAndDisplayDebts(response.body());
+                            Toast.makeText(GroupDetailsActivity.this, R.string.debt_paid_toast, Toast.LENGTH_SHORT).show();
+                            loadMembersReliability();
+                        } else {
+                            Toast.makeText(GroupDetailsActivity.this,
+                                    "Не удалось провести перевод (" + response.code() + ")",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DebtResponse> call, Throwable t) {
+                        Toast.makeText(GroupDetailsActivity.this,
+                                "Ошибка сети: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void refreshDebtSummary() {
+        TextView tvOwedToYou = findViewById(R.id.tvOwedToYou);
+        TextView tvYouOwe = findViewById(R.id.tvYouOwe);
+
+        double totalOwedToMe = 0;
+        double totalIOwe = 0;
+
+        for (DebtPerson person : debtPeople) {
+            if (person.owesMe()) {
+                totalOwedToMe += person.getAmountValue();
+            } else {
+                totalIOwe += person.getAmountValue();
             }
         }
 
@@ -243,24 +451,17 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 ? R.color.money_positive : R.color.money_gray));
         tvYouOwe.setTextColor(getColor(totalIOwe > 0
                 ? R.color.money_black : R.color.money_gray));
-
-        adapter.notifyDataSetChanged();
-        btnPay.setVisibility(View.GONE);
-
-        boolean debtsEmpty = debtPeople.isEmpty();
-        tvDebtsEmpty.setVisibility(debtsEmpty ? View.VISIBLE : View.GONE);
     }
 
-    private void onDebtSelected(DebtPerson selectedPerson) {
-        if (selectedPerson != null && selectedPerson.canPay()) {
-            btnPay.setVisibility(View.VISIBLE);
-        } else {
-            btnPay.setVisibility(View.GONE);
-            if (selectedPerson != null && selectedPerson.owesMe()) {
-                Toast.makeText(this, selectedPerson.getName() + " должен вам — оплата не нужна",
-                        Toast.LENGTH_SHORT).show();
-            }
+    private void updateDebtsEmptyState() {
+        tvDebtsEmpty.setVisibility(debtPeople.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    private void hidePayPanel() {
+        if (payBottomSheet != null && payBottomSheet.isShowing()) {
+            payBottomSheet.dismiss();
         }
+        payBottomSheet = null;
     }
 
     public enum DebtDirection {
@@ -271,12 +472,15 @@ public class GroupDetailsActivity extends AppCompatActivity {
     public static class DebtPerson {
         private final int iconResId;
         private final String name;
-        private final String amount;
         private final DebtDirection direction;
+        private double amountValue;
+        private String amount;
 
-        public DebtPerson(int iconResId, String name, String amount, DebtDirection direction) {
+        public DebtPerson(int iconResId, String name, double amountValue, String amount,
+                          DebtDirection direction) {
             this.iconResId = iconResId;
             this.name = name;
+            this.amountValue = amountValue;
             this.amount = amount;
             this.direction = direction;
         }
@@ -284,8 +488,9 @@ public class GroupDetailsActivity extends AppCompatActivity {
         public int getIconResId() { return iconResId; }
         public String getName() { return name; }
         public String getAmount() { return amount; }
+        public double getAmountValue() { return amountValue; }
         public DebtDirection getDirection() { return direction; }
         public boolean owesMe() { return direction == DebtDirection.OWES_ME; }
-        public boolean canPay() { return direction == DebtDirection.I_OWE; }
+        public boolean canPay() { return true; }
     }
 }
