@@ -1,12 +1,14 @@
 package com.example.cheqmate.dto;
 
 import java.util.List;
+import java.util.Map;
 
 public class ChequeItemRequest {
     private String name;
     private double price;
     private int quantity;
     private List<String> participantNames;
+    private Map<String, Double> participantShares;
 
     public ChequeItemRequest(String name, double price, int quantity, List<String> participantNames) {
         this.name = name;
@@ -23,4 +25,6 @@ public class ChequeItemRequest {
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public List<String> getParticipantNames() { return participantNames; }
     public void setParticipantNames(List<String> participantNames) { this.participantNames = participantNames; }
+    public Map<String, Double> getParticipantShares() { return participantShares; }
+    public void setParticipantShares(Map<String, Double> participantShares) { this.participantShares = participantShares; }
 }

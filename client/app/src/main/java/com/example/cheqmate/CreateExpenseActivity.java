@@ -37,6 +37,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -263,12 +264,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
 
     private void applyLoserToCheque(String loser) {
         actPayer.setText(loser, false);
-        List<String> loserOnly = new ArrayList<>(Collections.singletonList(loser));
-        for (ChequeItemRequest item : itemsList) {
-            item.setParticipantNames(new ArrayList<>(loserOnly));
-        }
-        adapter.notifyDataSetChanged();
-
+        adapter.setAllParticipants(loser);
         tvGameInfo.setText("Проиграл: " + loser + "\nОн платит за всех — поля заполнены");
         Toast.makeText(this, loser + " платит за всех", Toast.LENGTH_LONG).show();
     }
@@ -372,16 +368,38 @@ public class CreateExpenseActivity extends AppCompatActivity {
             return;
         }
 
+        List<ChequeItemRequest> expandedItems = expandShareItems(itemsList);
+
         ChequeRequest request = new ChequeRequest(
                 groupId,
                 chequeName,
                 ownerName,
                 whoPaid,
-                itemsList
+                expandedItems
         );
         request.setFromRoulette(fromRoulette);
 
         sendToServer(request);
+    }
+
+    private List<ChequeItemRequest> expandShareItems(List<ChequeItemRequest> original) {
+        List<ChequeItemRequest> result = new ArrayList<>();
+        for (ChequeItemRequest item : original) {
+            Map<String, Double> shares = item.getParticipantShares();
+            if (shares != null && !shares.isEmpty()) {
+                double total = item.getPrice() * item.getQuantity();
+                for (Map.Entry<String, Double> e : shares.entrySet()) {
+                    double portion = Math.round(total * e.getValue() / 100.0 * 100.0) / 100.0;
+                    result.add(new ChequeItemRequest(
+                            item.getName(), portion, 1,
+                            Collections.singletonList(e.getKey())
+                    ));
+                }
+            } else {
+                result.add(item);
+            }
+        }
+        return result;
     }
 
     private void sendToServer(ChequeRequest request) {
