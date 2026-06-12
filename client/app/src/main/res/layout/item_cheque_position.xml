@@ -66,24 +66,16 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSharesSummary"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Для кого"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusTopStart="10dp"
-                app:boxStrokeColor="@color/divider_light">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actItemParticipant"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="12dp"
+                android:text="Выбрать участников"
+                android:textSize="12sp" />
 
             <ImageButton
                 android:id="@+id/btnRemoveItem"
