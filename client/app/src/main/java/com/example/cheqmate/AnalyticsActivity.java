@@ -15,6 +15,7 @@ import com.example.cheqmate.adapter.DebtAdapter;
 import com.example.cheqmate.dto.DebtResponse;
 import com.example.cheqmate.network.NetworkClient;
 import com.example.cheqmate.network.SessionManager;
+import com.example.cheqmate.notification.NotificationBadge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class AnalyticsActivity extends AppCompatActivity {
     private TextView tvStats;
     private TextView tvDebtorsTitle, tvOwedToOthersTitle;
     private TextView tvDebtorsEmpty, tvCreditorsEmpty;
+    private TextView tvNotificationBadge;
 
     private RecyclerView rvDebtors;
     private RecyclerView rvCreditors;
@@ -52,6 +54,12 @@ public class AnalyticsActivity extends AppCompatActivity {
         loadData();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NotificationBadge.refresh(this, tvNotificationBadge);
+    }
+
     private void initViews() {
         btnGroups = findViewById(R.id.btnGroups);
         btnAnalytics = findViewById(R.id.btnAnalytics);
@@ -60,6 +68,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         btnAnalytics.setOnClickListener(v ->
                 Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show());
 
+        tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
         TextView btnNotifications = findViewById(R.id.btnNotifications);
         btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(AnalyticsActivity.this, NotificationsActivity.class)));

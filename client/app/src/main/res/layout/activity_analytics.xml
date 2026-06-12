@@ -43,14 +43,35 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnNotifications"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_chip_inactive"
-                android:gravity="center"
-                android:text="🔔"
-                android:textSize="18sp" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/btnNotifications"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/bg_chip_inactive"
+                    android:gravity="center"
+                    android:text="🔔"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tvNotificationBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/bg_notification_badge"
+                    android:gravity="center"
+                    android:minWidth="18dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="0"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
 
         <LinearLayout
