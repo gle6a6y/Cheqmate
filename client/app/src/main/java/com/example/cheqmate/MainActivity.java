@@ -22,6 +22,7 @@ import com.example.cheqmate.model.Group;
 import com.example.cheqmate.network.PushTokenManager;
 import com.example.cheqmate.network.SessionManager;
 import com.example.cheqmate.network.SseClient;
+import com.example.cheqmate.notification.NotificationBadge;
 import com.example.cheqmate.notification.Notifier;
 import com.example.cheqmate.viewmodel.GroupsViewModel;
 
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private GroupsViewModel viewModel;
     private List<Group> groups;
+    private TextView tvNotificationBadge;
 
     private final SseClient sseClient = new SseClient();
 
@@ -74,7 +76,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        findViewById(R.id.btnNotifications).setOnClickListener(v ->
+        tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
+        TextView btnNotifications = findViewById(R.id.btnNotifications);
+        btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, NotificationsActivity.class)));
 
         btnAdd.setOnClickListener(v -> {
@@ -100,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.loadGroups();
         }
         connectLiveNotifications();
+        refreshUnreadBadge();
     }
 
     @Override
@@ -113,8 +118,14 @@ public class MainActivity extends AppCompatActivity {
         if (jwt == null) {
             return;
         }
-        sseClient.connect(jwt, notification ->
-                Notifier.show(getApplicationContext(), notification.getTitle(), notification.getBody()));
+        sseClient.connect(jwt, notification -> {
+            Notifier.show(getApplicationContext(), notification.getTitle(), notification.getBody());
+            refreshUnreadBadge();
+        });
+    }
+
+    private void refreshUnreadBadge() {
+        NotificationBadge.refresh(this, tvNotificationBadge);
     }
 
     private void requestNotificationPermissionIfNeeded() {
