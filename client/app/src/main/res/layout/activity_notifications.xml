@@ -88,13 +88,14 @@
                     android:paddingHorizontal="24dp"
                     android:paddingVertical="36dp">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:background="@drawable/bg_notification_icon"
-                        android:gravity="center"
-                        android:text="🔔"
-                        android:textSize="26sp" />
+                        android:contentDescription="@string/notifications"
+                        android:padding="12dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_notification" />
 
                     <TextView
                         android:layout_width="wrap_content"

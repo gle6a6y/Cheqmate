@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
-        TextView btnNotifications = findViewById(R.id.btnNotifications);
+        View btnNotifications = findViewById(R.id.btnNotifications);
         btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, NotificationsActivity.class)));
 

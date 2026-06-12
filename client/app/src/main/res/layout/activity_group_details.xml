@@ -139,11 +139,11 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvMembers"
+                <LinearLayout
+                    android:id="@+id/llMembers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:orientation="vertical" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

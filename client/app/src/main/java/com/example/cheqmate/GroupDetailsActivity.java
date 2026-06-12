@@ -7,6 +7,7 @@ import android.util.Log;
 import java.io.IOException;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +53,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private YourDebtsAdapter adapter;
     private GroupChequesAdapter chequesAdapter;
     private GroupMembersAdapter membersAdapter;
+    private LinearLayout llMembers;
     private final List<GroupMember> groupMembers = new ArrayList<>();
     private TextView tvChequesEmpty;
     private TextView tvDebtsEmpty;
@@ -115,10 +117,14 @@ public class GroupDetailsActivity extends AppCompatActivity {
     }
 
     private void setupMembersList() {
-        RecyclerView rvMembers = findViewById(R.id.rvMembers);
-        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        llMembers = findViewById(R.id.llMembers);
         membersAdapter = new GroupMembersAdapter(groupMembers);
-        rvMembers.setAdapter(membersAdapter);
+    }
+
+    private void renderMembers() {
+        if (membersAdapter != null && llMembers != null) {
+            membersAdapter.renderInto(llMembers);
+        }
     }
 
     private void loadMembersReliability() {
@@ -127,10 +133,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
         SessionManager sessionManager = new SessionManager(this);
         String token = "Bearer " + sessionManager.fetchAuthToken();
 
-
         for (String name : realGroupMembers) {
-
-            final String memberName = name; // а иначе ошибка будет тк вызываем анонимную функцию
+            final String memberName = name;
 
             NetworkClient.getApiService().getUserReliability(token, memberName).enqueue(new Callback<ReliabilityResponse>() {
                 @Override
@@ -141,19 +145,16 @@ public class GroupDetailsActivity extends AppCompatActivity {
                                     memberName,
                                     response.body().getReliabilityRating(),
                                     memberName != null && memberName.equals(currentUser)));
-                            membersAdapter.notifyDataSetChanged();
+                            renderMembers();
                         } catch (Exception e) {
                             Log.d("RELIABILITY", "onResponse: " + e.getMessage());
                         }
-                    }
-                    else {
+                    } else {
                         groupMembers.add(new GroupMember(
                                 memberName,
                                 null,
                                 memberName != null && memberName.equals(currentUser)));
-                        if (membersAdapter != null) {
-                            membersAdapter.notifyDataSetChanged();
-                        }
+                        renderMembers();
                     }
                 }
 

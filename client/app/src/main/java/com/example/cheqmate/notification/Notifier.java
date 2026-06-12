@@ -46,7 +46,7 @@ public final class Notifier {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title != null ? title : context.getString(R.string.app_name))
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))

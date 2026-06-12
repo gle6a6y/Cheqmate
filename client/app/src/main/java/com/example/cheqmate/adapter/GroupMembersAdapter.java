@@ -1,23 +1,20 @@
 package com.example.cheqmate.adapter;
 
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cheqmate.R;
 import com.example.cheqmate.model.GroupMember;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class GroupMembersAdapter extends RecyclerView.Adapter<GroupMembersAdapter.ViewHolder> {
+public class GroupMembersAdapter {
 
     private final List<GroupMember> members;
 
@@ -25,41 +22,38 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<GroupMembersAdapte
         this.members = members;
     }
 
-    public void setMembers(List<GroupMember> newMembers) {
-        members.clear();
-        members.addAll(new ArrayList<>(newMembers));
-        notifyDataSetChanged();
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_group_member, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GroupMember member = members.get(position);
-        holder.tvName.setText(member.getName());
-        holder.tvYouBadge.setVisibility(member.isCurrentUser() ? View.VISIBLE : View.GONE);
-
-        Double rating = member.getReliabilityRating();
-        if (rating == null) {
-            holder.tvReliability.setText(R.string.reliability_unknown);
-            holder.tvReliability.setTextColor(
-                    ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
-            holder.tvReliability.setBackgroundColor(Color.TRANSPARENT);
-        } else {
-            int rounded = (int) Math.round(rating);
-            holder.tvReliability.setText(holder.itemView.getContext()
-                    .getString(R.string.reliability_percent, rounded));
-            applyRatingStyle(holder, rounded);
+    public void renderInto(LinearLayout container) {
+        container.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(container.getContext());
+        for (GroupMember member : members) {
+            View row = inflater.inflate(R.layout.item_group_member, container, false);
+            bindRow(row, member);
+            container.addView(row);
         }
     }
 
-    private void applyRatingStyle(ViewHolder holder, int percent) {
+    private void bindRow(View row, GroupMember member) {
+        TextView tvName = row.findViewById(R.id.tvName);
+        TextView tvYouBadge = row.findViewById(R.id.tvYouBadge);
+        TextView tvReliability = row.findViewById(R.id.tvReliability);
+
+        tvName.setText(member.getName());
+        tvYouBadge.setVisibility(member.isCurrentUser() ? View.VISIBLE : View.GONE);
+
+        Double rating = member.getReliabilityRating();
+        if (rating == null) {
+            tvReliability.setText(R.string.reliability_unknown);
+            tvReliability.setTextColor(
+                    ContextCompat.getColor(row.getContext(), R.color.text_secondary));
+            tvReliability.setBackgroundResource(android.R.color.transparent);
+        } else {
+            int rounded = (int) Math.round(rating);
+            tvReliability.setText(row.getContext().getString(R.string.reliability_percent, rounded));
+            applyRatingStyle(row, tvReliability, rounded);
+        }
+    }
+
+    private void applyRatingStyle(View row, TextView tvReliability, int percent) {
         int textColor;
         int bgColor;
         if (percent >= 80) {
@@ -72,27 +66,10 @@ public class GroupMembersAdapter extends RecyclerView.Adapter<GroupMembersAdapte
             textColor = R.color.logout_red;
             bgColor = Color.parseColor("#FFEBEE");
         }
-        holder.tvReliability.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), textColor));
-        holder.tvReliability.setBackgroundColor(bgColor);
-    }
-
-    @Override
-    public int getItemCount() {
-        return members.size();
-    }
-
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivAvatar;
-        TextView tvName;
-        TextView tvYouBadge;
-        TextView tvReliability;
-
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ivAvatar = itemView.findViewById(R.id.ivAvatar);
-            tvName = itemView.findViewById(R.id.tvName);
-            tvYouBadge = itemView.findViewById(R.id.tvYouBadge);
-            tvReliability = itemView.findViewById(R.id.tvReliability);
-        }
+        tvReliability.setTextColor(ContextCompat.getColor(row.getContext(), textColor));
+        GradientDrawable badge = new GradientDrawable();
+        badge.setColor(bgColor);
+        badge.setCornerRadius(10f * row.getResources().getDisplayMetrics().density);
+        tvReliability.setBackground(badge);
     }
 }

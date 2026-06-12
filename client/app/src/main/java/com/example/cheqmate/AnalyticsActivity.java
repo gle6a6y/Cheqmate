@@ -73,7 +73,7 @@ public class AnalyticsActivity extends AppCompatActivity {
                 Toast.makeText(this, "Вы уже здесь", Toast.LENGTH_SHORT).show());
 
         tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
-        TextView btnNotifications = findViewById(R.id.btnNotifications);
+        View btnNotifications = findViewById(R.id.btnNotifications);
         btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(AnalyticsActivity.this, NotificationsActivity.class)));
 
