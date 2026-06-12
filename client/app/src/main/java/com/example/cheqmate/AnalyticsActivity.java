@@ -61,11 +61,6 @@ public class AnalyticsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadData();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         NotificationBadge.refresh(this, tvNotificationBadge);
     }
 
