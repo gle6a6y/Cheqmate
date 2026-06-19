@@ -351,6 +351,25 @@ public class PostgresStorageService implements StorageService {
                 whoPaidName
         ));
 
+        for (Map.Entry<Integer, Double> entry : cheque.getProportions().entrySet()) {
+            int userId = entry.getKey();
+            double amount = entry.getValue();
+            if (userId == whoPaid.getId() || amount <= 1e-6) {
+                continue;
+            }
+            User debtor = userRepo.findById(userId).orElse(null);
+            if (debtor == null) {
+                continue;
+            }
+            eventPublisher.publishEvent(new project.cheqmate.event.DebtAddedEvent(
+                    debtor.getName(),
+                    whoPaidName,
+                    amount,
+                    group.getGroupName(),
+                    group.getId()
+            ));
+        }
+
         return cheque;
     }
 
