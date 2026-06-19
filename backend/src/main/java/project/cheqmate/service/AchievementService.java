@@ -1,8 +1,10 @@
 package project.cheqmate.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.cheqmate.event.AchievementUnlockedEvent;
 import project.cheqmate.model.User;
 import project.cheqmate.model.UserAchievement;
 import project.cheqmate.repository.ChequeRepository;
@@ -10,6 +12,7 @@ import project.cheqmate.repository.PersonalExpenseRepository;
 import project.cheqmate.repository.UserAchievementRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class AchievementService {
     private final UserAchievementRepository achievementRepo;
     private final ChequeRepository chequeRepo;
     private final PersonalExpenseRepository personalExpenseRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     public static final String FIRST_CHEQUE  = "FIRST_CHEQUE";
     public static final String GENEROUS      = "GENEROUS";
@@ -26,10 +30,22 @@ public class AchievementService {
     public static final String SCANNER       = "SCANNER";
     public static final String BIG_SPENDER   = "BIG_SPENDER";
 
+    public static final Map<String, String[]> META = Map.of(
+            FIRST_CHEQUE, new String[]{"🧾 Первый чек", "Создал первый чек"},
+            GENEROUS,     new String[]{"🤑 Щедрый", "Оплатил за других 5 раз"},
+            HONEST,       new String[]{"😇 Честный", "Погасил долг"},
+            LOSER,        new String[]{"📉 Неудачник", "Проиграл рулетку"},
+            SCANNER,      new String[]{"📷 Сканер", "Создал чек через QR"},
+            BIG_SPENDER,  new String[]{"💰 Транжира", "Личные расходы превысили 10 000 ₽"}
+    );
+
     @Transactional
     public void unlock(User user, String key) {
         if (!achievementRepo.existsByUserAndAchievementKey(user, key)) {
             achievementRepo.save(new UserAchievement(user, key));
+
+            String name = META.getOrDefault(key, new String[]{key, ""})[0];
+            eventPublisher.publishEvent(new AchievementUnlockedEvent(user.getName(), key, name));
         }
     }
 

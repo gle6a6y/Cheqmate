@@ -61,6 +61,12 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
         } else if ("GROUP_INVITE".equals(type)) {
             holder.tvIcon.setText("👥");
             holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon_group);
+        } else if ("DEBT_ADDED".equals(type)) {
+            holder.tvIcon.setText("💸");
+            holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon_debt);
+        } else if ("ACHIEVEMENT_UNLOCKED".equals(type)) {
+            holder.tvIcon.setText("🏆");
+            holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon_achievement);
         } else {
             holder.tvIcon.setText("🔔");
             holder.tvIcon.setBackgroundResource(R.drawable.bg_notification_icon);
